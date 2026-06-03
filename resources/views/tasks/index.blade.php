@@ -6,7 +6,7 @@
 
     @include('components.nav-menu')
 
-    <s-page heading="Task History">
+    <s-page heading="Task History" style="display:flex;flex-direction:column;gap:24px;">
 
         @php
             $tasks = \App\Models\BulkEditTask::where('user_id', Auth::id())

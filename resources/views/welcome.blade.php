@@ -8,7 +8,7 @@
     @include('components.nav-menu')
 
     {{-- Main Dashboard --}}
-    <s-page heading="Bulk Product Manager">
+    <s-page heading="Bulk Product Manager" style="display:flex;flex-direction:column;gap:24px;">
 
         {{-- Store Info --}}
         <s-banner status="info">

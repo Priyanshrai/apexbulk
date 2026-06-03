@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BulkEditTask;
+use App\Jobs\ProcessPriceJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,11 +23,26 @@ class EditorController extends Controller
     public function submitPrice(Request $request)
     {
         $validated = $request->validate([
-            'product_ids' => 'nullable|array',
+            'product_ids' => 'nullable|string',
+            'selection_mode' => 'nullable|in:all,manual',
             'action' => 'required|in:set_specific,increase_amount,decrease_amount,increase_percent,decrease_percent',
-            'value' => 'required|numeric',
+            'value' => 'required|numeric|min:0',
             'rounding' => 'nullable|in:none,nearest_01,nearest_whole,end_99,end_custom',
             'rounding_value' => 'nullable|numeric',
+        ]);
+
+        // Decode JSON product IDs, or null for "all products"
+        $productIds = null;
+        if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
+            $productIds = json_decode($validated['product_ids'], true);
+        }
+
+        \Log::info('Price task submitted', [
+            'shop' => Auth::user()->name,
+            'action' => $validated['action'],
+            'value' => $validated['value'],
+            'rounding' => $validated['rounding'] ?? 'none',
+            'product_count' => $productIds ? count($productIds) : 'ALL',
         ]);
 
         $task = BulkEditTask::create([
@@ -39,13 +55,13 @@ class EditorController extends Controller
                 'rounding' => $validated['rounding'] ?? 'none',
                 'rounding_value' => $validated['rounding_value'] ?? null,
             ],
-            'product_ids' => $validated['product_ids'] ?? null,
+            'product_ids' => $productIds,
         ]);
 
-        // Will dispatch job in Phase 2
-        // ProcessPriceJob::dispatch($task);
+        ProcessPriceJob::dispatch($task->id);
 
-        return redirect('/tasks')->with('success', 'Price update task created!');
+        return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
+            ->with('success', 'Price update task created!');
     }
 
     /**
@@ -62,27 +78,25 @@ class EditorController extends Controller
     public function submitInventory(Request $request)
     {
         $validated = $request->validate([
-            'product_ids' => 'nullable|array',
+            'product_ids' => 'nullable|string',
             'action' => 'required|in:set_quantity,add_quantity,remove_quantity',
             'quantity' => 'required|integer|min:0',
             'track_inventory' => 'nullable|boolean',
             'continue_selling' => 'nullable|boolean',
         ]);
 
-        $task = BulkEditTask::create([
-            'user_id' => Auth::id(),
-            'task_type' => BulkEditTask::TYPE_INVENTORY,
-            'status' => BulkEditTask::STATUS_PENDING,
-            'parameters' => [
-                'action' => $validated['action'],
-                'quantity' => $validated['quantity'],
-                'track_inventory' => $validated['track_inventory'] ?? null,
-                'continue_selling' => $validated['continue_selling'] ?? null,
-            ],
-            'product_ids' => $validated['product_ids'] ?? null,
+        \Log::info('Inventory task submitted', [
+            'shop' => Auth::user()->name,
+            'action' => $validated['action'],
+            'quantity' => $validated['quantity'],
+            'track' => $validated['track_inventory'] ?? false,
+            'continue_selling' => $validated['continue_selling'] ?? false,
         ]);
 
-        return redirect('/tasks')->with('success', 'Inventory update task created!');
+        // Job dispatch in Phase 3
+
+        return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
+            ->with('success', 'Inventory task created!');
     }
 
     /**
@@ -99,22 +113,20 @@ class EditorController extends Controller
     public function submitTags(Request $request)
     {
         $validated = $request->validate([
-            'product_ids' => 'nullable|array',
+            'product_ids' => 'nullable|string',
             'action' => 'required|in:add,remove,replace,clear',
             'tags' => 'nullable|array',
         ]);
 
-        $task = BulkEditTask::create([
-            'user_id' => Auth::id(),
-            'task_type' => BulkEditTask::TYPE_TAGS,
-            'status' => BulkEditTask::STATUS_PENDING,
-            'parameters' => [
-                'action' => $validated['action'],
-                'tags' => $validated['tags'] ?? [],
-            ],
-            'product_ids' => $validated['product_ids'] ?? null,
+        \Log::info('Tags task submitted', [
+            'shop' => Auth::user()->name,
+            'action' => $validated['action'],
+            'tags' => $validated['tags'] ?? [],
         ]);
 
-        return redirect('/tasks')->with('success', 'Tags update task created!');
+        // Job dispatch in Phase 4
+
+        return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
+            ->with('success', 'Tags task created!');
     }
 }

@@ -3,34 +3,37 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Tags Editor">
-        <button variant="primary" onclick="document.getElementById('tag-form').submit()">Execute</button>
+        <button variant="primary" onclick="document.getElementById('tag-form').submit()">⚡ Execute</button>
     </ui-title-bar>
 
     @include('components.nav-menu')
 
     <s-page heading="Bulk Tags Editor">
 
-        <s-section heading="Step 1: Select Products">
-            <s-button onclick="openResourcePicker()">🔍 Browse Products</s-button>
-            <s-paragraph id="selected-count">0 products selected</s-paragraph>
-        </s-section>
+        <form id="tag-form" method="POST" action="{{ url('/editor/tags') }}?{{ http_build_query(request()->query()) }}" style="display:flex;flex-direction:column;gap:24px;">
+            @csrf
+            <input type="hidden" name="product_ids" id="product-ids">
 
-        <s-section heading="Step 2: Tag Action">
-            <form id="tag-form" method="POST" action="{{ url('/editor/tags') }}?{{ http_build_query(request()->query()) }}">
-                @csrf
-                <input type="hidden" name="product_ids" id="product-ids">
+            <s-section heading="1. Select Products">
+                <s-paragraph tone="subdued">Choose which products to update tags for.</s-paragraph>
+                <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
+                <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+            </s-section>
 
-                <s-select label="Action" name="action">
-                    <s-option value="add">Add Tags</s-option>
-                    <s-option value="remove">Remove Tags</s-option>
-                    <s-option value="replace">Replace All Tags</s-option>
-                    <s-option value="clear">Clear All Tags</s-option>
+            <s-section heading="2. Tag Action">
+                <s-paragraph tone="subdued">Add, remove, or replace tags in bulk.</s-paragraph>
+
+                <s-select label="Action *" name="action" required>
+                    <s-option value="add">Add tags to existing</s-option>
+                    <s-option value="remove">Remove specific tags</s-option>
+                    <s-option value="replace">Replace all tags</s-option>
+                    <s-option value="clear">Clear all tags</s-option>
                 </s-select>
 
-                <s-text-field label="Tags (comma separated)" name="tags_input" placeholder="summer, sale, 2026"></s-text-field>
+                <s-text-field label="Tags (comma separated)" name="tags_input" placeholder="summer, sale, clearance"></s-text-field>
                 <input type="hidden" name="tags" id="tags-array">
-            </form>
-        </s-section>
+            </s-section>
+        </form>
 
     </s-page>
 
@@ -49,7 +52,7 @@
         shopify.resourcePicker({ type: 'product', multiple: true }).then(result => {
             if (result) {
                 selectedProductIds = result.map(p => p.id.replace('gid://shopify/Product/', ''));
-                document.getElementById('selected-count').textContent = selectedProductIds.length + ' products selected';
+                document.getElementById('selected-count').textContent = selectedProductIds.length + ' product(s) selected';
                 document.getElementById('product-ids').value = JSON.stringify(selectedProductIds);
             }
         });
