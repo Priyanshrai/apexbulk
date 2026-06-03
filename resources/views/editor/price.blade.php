@@ -1,59 +1,50 @@
 @extends('shopify-app::layouts.default')
 
-@section('styles')
-    <script src="https://cdn.shopify.com/shopifycloud/polaris.js"></script>
-@endsection
-
 @section('content')
 
     <ui-title-bar title="ApexBulk > Price Editor">
         <button variant="primary" onclick="document.getElementById('price-form').submit()">Execute</button>
     </ui-title-bar>
 
+    @include('components.nav-menu')
+
     <s-page heading="Bulk Price Editor">
 
-        {{-- Step 1: Select Products --}}
-        <s-card>
-            <s-text as="h2" variant="headingLg">Step 1: Select Products</s-text>
-
+        <s-section heading="Step 1: Select Products">
             <s-select label="Selection Mode" name="selection_mode">
-                <option value="all">All Products</option>
-                <option value="manual">Manual Selection</option>
+                <s-option value="all">All Products</s-option>
+                <s-option value="manual">Manual Selection</s-option>
             </s-select>
-
             <s-button onclick="openResourcePicker()">🔍 Browse Products</s-button>
             <s-paragraph id="selected-count">0 products selected</s-paragraph>
-        </s-card>
+        </s-section>
 
-        {{-- Step 2: Set Price Rule --}}
-        <s-card>
-            <s-text as="h2" variant="headingLg">Step 2: Set Price Rule</s-text>
-
+        <s-section heading="Step 2: Set Price Rule">
             <form id="price-form" method="POST" action="{{ url('/editor/price') }}?{{ http_build_query(request()->query()) }}">
                 @csrf
                 <input type="hidden" name="product_ids" id="product-ids">
 
                 <s-select label="Action" name="action">
-                    <option value="set_specific">Set Specific Price</option>
-                    <option value="increase_amount">Increase by Amount ($)</option>
-                    <option value="decrease_amount">Decrease by Amount ($)</option>
-                    <option value="increase_percent">Increase by Percentage (%)</option>
-                    <option value="decrease_percent">Decrease by Percentage (%)</option>
+                    <s-option value="set_specific">Set Specific Price</s-option>
+                    <s-option value="increase_amount">Increase by Amount ($)</s-option>
+                    <s-option value="decrease_amount">Decrease by Amount ($)</s-option>
+                    <s-option value="increase_percent">Increase by Percentage (%)</s-option>
+                    <s-option value="decrease_percent">Decrease by Percentage (%)</s-option>
                 </s-select>
 
-                <s-text-field label="Value" name="value" type="number" step="0.01" placeholder="10.00"></s-text-field>
+                <s-number-field label="Value" name="value" step="0.01" placeholder="10.00"></s-number-field>
 
                 <s-select label="Rounding" name="rounding">
-                    <option value="none">No Rounding</option>
-                    <option value="nearest_01">Nearest $0.01</option>
-                    <option value="nearest_whole">Nearest Whole Number</option>
-                    <option value="end_99">End in .99</option>
-                    <option value="end_custom">Custom Ending</option>
+                    <s-option value="none">No Rounding</s-option>
+                    <s-option value="nearest_01">Nearest $0.01</s-option>
+                    <s-option value="nearest_whole">Nearest Whole Number</s-option>
+                    <s-option value="end_99">End in .99</s-option>
+                    <s-option value="end_custom">Custom Ending</s-option>
                 </s-select>
 
-                <s-text-field label="Custom Rounding Value" name="rounding_value" type="number" step="0.01" placeholder="0.99"></s-text-field>
+                <s-number-field label="Custom Rounding Value" name="rounding_value" step="0.01" placeholder="0.99"></s-number-field>
             </form>
-        </s-card>
+        </s-section>
 
     </s-page>
 
@@ -63,7 +54,6 @@
     @parent
 <script>
     let selectedProductIds = [];
-
     function openResourcePicker() {
         shopify.resourcePicker({ type: 'product', multiple: true }).then(result => {
             if (result) {
