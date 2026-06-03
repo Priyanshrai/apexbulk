@@ -51,32 +51,22 @@
                 <s-banner status="info">No tasks yet. Open an editor above to get started!</s-banner>
             @else
                 <s-table>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Products</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($recentTasks as $task)
-                            <tr>
-                                <td>
-                                    @if($task->task_type === 'price') 💰 Price
-                                    @elseif($task->task_type === 'inventory') 📦 Inventory
-                                    @elseif($task->task_type === 'tags') 🏷️ Tags
-                                    @else {{ ucfirst($task->task_type) }}
-                                    @endif
-                                </td>
-                                <td>{{ is_array($task->product_ids) ? count($task->product_ids) : 'All' }}</td>
-                                <td><s-badge status="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'warning' : 'info')) }}">{{ ucfirst($task->status) }}</s-badge></td>
-                                <td>{{ $task->created_at->diffForHumans() }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <s-table-header-row>
+                        <s-table-header>Type</s-table-header>
+                        <s-table-header>Products</s-table-header>
+                        <s-table-header>Status</s-table-header>
+                        <s-table-header>Date</s-table-header>
+                    </s-table-header-row>
+                    <s-table-body>
+                    @foreach($recentTasks as $task)
+                    <s-table-row>
+                        <s-table-cell>@if($task->task_type === 'price') 💰 Price @elseif($task->task_type === 'inventory') 📦 Inventory @elseif($task->task_type === 'tags') 🏷️ Tags @else {{ ucfirst($task->task_type) }} @endif</s-table-cell>
+                        <s-table-cell>{{ is_array($task->product_ids) ? count($task->product_ids) : 'All' }}</s-table-cell>
+                        <s-table-cell><s-badge tone="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'caution' : 'info')) }}">{{ ucfirst($task->status) }}</s-badge></s-table-cell>
+                        <s-table-cell>{{ $task->created_at->diffForHumans() }}</s-table-cell>
+                    </s-table-row>
+                    @endforeach
+                    </s-table-body>
                 </s-table>
             @endif
 

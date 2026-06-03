@@ -3,7 +3,7 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Tags Editor">
-        <button variant="primary" onclick="document.getElementById('tag-form').submit()">⚡ Execute</button>
+        <s-button variant="primary" onclick="document.getElementById('tag-form').submit()">⚡ Execute</s-button>
     </ui-title-bar>
 
     @include('components.nav-menu')

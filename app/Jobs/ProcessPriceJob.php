@@ -111,18 +111,13 @@ class ProcessPriceJob implements ShouldQueue
         $cursor = null;
 
         do {
-            $filter = '';
-            if ($productIds && count($productIds) > 0) {
-                $gids = array_map(fn($id) => '"gid://shopify/Product/' . $id . '"', $productIds);
-                $filter = ', query: "id:(' . implode(' OR ', $gids) . ')"';
-            }
-
-            $query = sprintf('{
-                products(first: 50, after: %s%s) {
+            $query = '{
+                products(first: 250) {
                     edges {
                         node {
                             id
-                            variants(first: 50) {
+                            title
+                            variants(first: 100) {
                                 edges {
                                     node {
                                         id
@@ -135,14 +130,14 @@ class ProcessPriceJob implements ShouldQueue
                     }
                     pageInfo { hasNextPage }
                 }
-            }', $cursor ? '"' . $cursor . '"' : 'null', $filter);
+            }';
 
             $response = $shop->api()->graph($query);
             $products = $response['body']['data']['products'] ?? [];
-            $edges = $products['edges'] ?? [];
+            $edges = (array) ($products['edges'] ?? []);
             $allProducts = array_merge($allProducts, $edges);
 
-            $pageInfo = $products['pageInfo'] ?? [];
+            $pageInfo = (array) ($products['pageInfo'] ?? []);
             if (!empty($pageInfo['hasNextPage']) && !empty($edges)) {
                 $lastEdge = end($edges);
                 $cursor = $lastEdge['cursor'] ?? null;
@@ -151,7 +146,15 @@ class ProcessPriceJob implements ShouldQueue
             }
         } while ($cursor);
 
-        return $allProducts;
+        // Filter by specific product IDs in PHP (Shopify query param doesn't support id: filter)
+        if ($productIds && count($productIds) > 0) {
+            $allProducts = array_filter($allProducts, function ($product) use ($productIds) {
+                $id = $this->extractId($product['node']['id']);
+                return in_array($id, $productIds);
+            });
+        }
+
+        return array_values($allProducts);
     }
 
     /**
