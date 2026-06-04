@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BulkEditTask;
 use App\Jobs\ProcessPriceJob;
+use App\Jobs\ProcessInventoryJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -64,18 +65,50 @@ class EditorController extends Controller
 
     public function inventory()
     {
-        return view('editor.inventory');
+        $locations = [];
+
+        try {
+            $locations = \App\Services\ShopifyGraphQL::fetchLocations(Auth::user());
+        } catch (\Exception $e) {
+            $locations = [];
+        }
+
+        return view('editor.inventory', compact('locations'));
     }
 
     public function submitInventory(Request $request)
     {
         $validated = $request->validate([
             'product_ids' => 'nullable|string',
+            'location_id' => 'nullable|string',
             'action' => 'required|in:set_quantity,add_quantity,remove_quantity',
-            'quantity' => 'required|integer|min:0',
+            'quantity' => 'required|integer|min:0|max:999999',
             'track_inventory' => 'nullable|boolean',
             'continue_selling' => 'nullable|boolean',
+            'apply_variants' => 'nullable|boolean',
         ]);
+
+        $productIds = null;
+        if (!empty($validated['product_ids'])) {
+            $productIds = json_decode($validated['product_ids'], true);
+        }
+
+        $task = BulkEditTask::create([
+            'user_id' => Auth::id(),
+            'task_type' => BulkEditTask::TYPE_INVENTORY,
+            'status' => BulkEditTask::STATUS_PENDING,
+            'parameters' => [
+                'action' => $validated['action'],
+                'quantity' => (int) $validated['quantity'],
+                'location_id' => $validated['location_id'] ?? 'all',
+                'track_inventory' => (bool) ($validated['track_inventory'] ?? false),
+                'continue_selling' => (bool) ($validated['continue_selling'] ?? false),
+                'apply_variants' => (bool) ($validated['apply_variants'] ?? true),
+            ],
+            'product_ids' => $productIds,
+        ]);
+
+        ProcessInventoryJob::dispatch($task->id);
 
         return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
             ->with('success', 'Inventory task created!');

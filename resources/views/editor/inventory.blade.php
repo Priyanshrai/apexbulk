@@ -27,7 +27,18 @@
                 <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
             </s-section>
 
-            <s-section heading="2. Inventory Rule">
+            <s-section heading="2. Location">
+                <s-paragraph tone="subdued">Choose which warehouse/location to update inventory for.</s-paragraph>
+
+                <s-select label="Location *" name="location_id">
+                    <s-option value="all">All Locations</s-option>
+                    @foreach($locations as $loc)
+                        <s-option value="{{ $loc['id'] }}">{{ $loc['name'] }}</s-option>
+                    @endforeach
+                </s-select>
+            </s-section>
+
+            <s-section heading="3. Inventory Rule">
                 <s-paragraph tone="subdued">Define how inventory quantities should change.</s-paragraph>
 
                 <s-select label="Action *" name="action" required>
@@ -39,7 +50,7 @@
                 <s-number-field label="Quantity *" name="quantity" placeholder="100" required></s-number-field>
             </s-section>
 
-            <s-section heading="3. Options">
+            <s-section heading="4. Options">
                 <s-paragraph tone="subdued">Additional inventory settings.</s-paragraph>
 
                 <input type="hidden" name="track_inventory" value="0">
