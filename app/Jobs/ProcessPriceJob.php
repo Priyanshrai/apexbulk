@@ -36,19 +36,8 @@ class ProcessPriceJob implements ShouldQueue
         $applyVariants = $params['apply_variants'] ?? true;
         $productIds = $task->product_ids;
 
-        \Log::info('PriceJob: Starting', [
-            'task_id' => $task->id,
-            'action' => $action,
-            'value' => $value,
-            'rounding' => $rounding,
-            'apply_variants' => $applyVariants,
-            'product_ids_count' => $productIds ? count($productIds) : 'ALL',
-        ]);
-
         try {
             $allEdges = ShopifyGraphQL::fetchProducts($shop, $productIds);
-
-            \Log::info('PriceJob: Products fetched', ['count' => count($allEdges)]);
 
             $processed = 0;
             $skipped = 0;
@@ -113,22 +102,7 @@ class ProcessPriceJob implements ShouldQueue
                     TaskRevertLog::insert($revertLogs);
                     $processed += count($variantUpdates);
                 }
-
-                if (($index + 1) % 50 === 0) {
-                    \Log::info('PriceJob: Progress', [
-                        'task_id' => $task->id,
-                        'done' => $index + 1,
-                        'total' => count($allEdges),
-                        'processed' => $processed,
-                    ]);
-                }
             }
-
-            \Log::info('PriceJob: Complete', [
-                'processed' => $processed,
-                'skipped' => $skipped,
-                'errors' => count($errors),
-            ]);
 
             $task->update([
                 'status' => empty($errors) ? BulkEditTask::STATUS_COMPLETED : BulkEditTask::STATUS_FAILED,
@@ -136,7 +110,6 @@ class ProcessPriceJob implements ShouldQueue
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('PriceJob: Failed', ['task_id' => $task->id, 'error' => $e->getMessage()]);
             $task->update([
                 'status' => BulkEditTask::STATUS_FAILED,
                 'failure_reason' => $e->getMessage(),

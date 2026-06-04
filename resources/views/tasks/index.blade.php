@@ -8,12 +8,6 @@
 
     <s-page heading="Task History" style="display:flex;flex-direction:column;gap:24px;">
 
-        @php
-            $tasks = \App\Models\BulkEditTask::where('user_id', Auth::id())
-                ->latest()
-                ->paginate(25);
-        @endphp
-
         @if($tasks->isEmpty())
             <s-banner tone="info">No tasks yet. Go to the dashboard and start editing!</s-banner>
             <s-button onclick="location.href='{{ url('/') }}?{{ http_build_query(request()->query()) }}'">← Back to Dashboard</s-button>
@@ -25,6 +19,7 @@
                     <s-table-header>Products</s-table-header>
                     <s-table-header>Status</s-table-header>
                     <s-table-header>When</s-table-header>
+                    <s-table-header></s-table-header>
                 </s-table-header-row>
                 <s-table-body>
                 @foreach($tasks as $task)
@@ -82,6 +77,18 @@
                     </s-table-cell>
 
                     <s-table-cell style="white-space:nowrap;">{{ $task->created_at->diffForHumans() }}</s-table-cell>
+                    <s-table-cell>
+                        @if($task->status === 'completed')
+                            <form method="POST" action="{{ url('/tasks/' . $task->id . '/revert') }}?{{ http_build_query(request()->query()) }}" style="margin:0;">
+                                @csrf
+                                <s-button type="submit" size="small">↩ Revert</s-button>
+                            </form>
+                        @elseif($task->status === 'reverting')
+                            <s-spinner size="small"></s-spinner>
+                        @elseif($task->status === 'reverted')
+                            <s-badge tone="success">Reverted</s-badge>
+                        @endif
+                    </s-table-cell>
                 </s-table-row>
                 @endforeach
                 </s-table-body>
