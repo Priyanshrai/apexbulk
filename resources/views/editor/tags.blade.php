@@ -3,7 +3,7 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Tags Editor">
-        <button variant="primary" onclick="shopify.modal.show('confirm-tag-modal')">⚡ Execute</button>
+        <button variant="primary" onclick="openConfirmModal('confirm-tag-modal', 'tag-form')">⚡ Execute</button>
     </ui-title-bar>
 
     @include('components.nav-menu')
@@ -50,6 +50,22 @@
     @parent
 <script>
     let selectedProductIds = [];
+
+    function openConfirmModal(modalId, formId) {
+        const action = document.querySelector('[name="action"]');
+        if (action && action.value === 'clear') {
+            shopify.modal.show(modalId);
+            return;
+        }
+        const tagsInput = document.querySelector('[name="tags_input"]');
+        if (!tagsInput || tagsInput.value.trim() === '') {
+            alert('Please enter tags or select "Clear all tags" before executing.');
+            if (tagsInput && tagsInput.focus) tagsInput.focus();
+            return;
+        }
+        shopify.modal.show(modalId);
+    }
+
     document.getElementById('tag-form').addEventListener('submit', function() {
         const input = document.querySelector('[name="tags_input"]');
         const tags = input.value.split(',').map(t => t.trim()).filter(Boolean);

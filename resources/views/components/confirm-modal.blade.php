@@ -7,6 +7,6 @@
 
     <ui-title-bar title="{{ $title }}">
         <button onclick="shopify.modal.hide('{{ $modalId }}')">Cancel</button>
-        <button variant="primary" onclick="shopify.modal.hide('{{ $modalId }}').then(() => document.getElementById('{{ $formId }}').submit())">Execute update</button>
+        <button variant="primary" onclick="const f=document.getElementById('{{ $formId }}'); shopify.modal.hide('{{ $modalId }}').then(()=>f.requestSubmit?f.requestSubmit():f.submit())">Execute update</button>
     </ui-title-bar>
 </ui-modal>

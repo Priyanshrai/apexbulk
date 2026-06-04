@@ -3,7 +3,7 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Price Editor">
-        <button variant="primary" onclick="shopify.modal.show('confirm-price-modal')">⚡ Execute</button>
+        <button variant="primary" onclick="openConfirmModal('confirm-price-modal', 'price-form')">⚡ Execute</button>
     </ui-title-bar>
 
     @include('components.nav-menu')
@@ -76,6 +76,18 @@
     @parent
 <script>
     let selectedProductIds = [];
+
+    function openConfirmModal(modalId, formId) {
+        const action = document.querySelector('[name="action"]');
+        const value = document.querySelector('[name="value"]');
+        if (!value || value.value === '') {
+            alert('Please enter a value before executing.');
+            if (value && value.focus) value.focus();
+            return;
+        }
+        shopify.modal.show(modalId);
+    }
+
     function openResourcePicker() {
         shopify.resourcePicker({ type: 'product', multiple: true }).then(result => {
             if (result) {

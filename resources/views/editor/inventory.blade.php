@@ -3,7 +3,7 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Inventory Editor">
-        <button variant="primary" onclick="shopify.modal.show('confirm-inv-modal')">⚡ Execute</button>
+        <button variant="primary" onclick="openConfirmModal('confirm-inv-modal', 'inv-form')">⚡ Execute</button>
     </ui-title-bar>
 
     @include('components.nav-menu')
@@ -56,6 +56,17 @@
     @parent
 <script>
     let selectedProductIds = [];
+
+    function openConfirmModal(modalId, formId) {
+        const quantity = document.querySelector('[name="quantity"]');
+        if (!quantity || quantity.value === '') {
+            alert('Please enter a quantity before executing.');
+            if (quantity && quantity.focus) quantity.focus();
+            return;
+        }
+        shopify.modal.show(modalId);
+    }
+
     function openResourcePicker() {
         shopify.resourcePicker({ type: 'product', multiple: true }).then(result => {
             if (result) {
