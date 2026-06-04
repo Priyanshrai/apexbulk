@@ -65,8 +65,80 @@ class BulkEditTask extends Model
     public function productCount(): int
     {
         if (empty($this->product_ids)) {
-            return 0; // "all products" — count unknown until execution
+            return 0;
         }
         return count($this->product_ids);
+    }
+
+    public function isAllProducts(): bool
+    {
+        return empty($this->product_ids);
+    }
+
+    public function actionSummary(): string
+    {
+        $p = $this->parameters ?? [];
+        $action = $p['action'] ?? '?';
+        $value = $p['value'] ?? '';
+        $rounding = $p['rounding'] ?? 'none';
+
+        $labels = [
+            'set_specific' => 'Set to',
+            'increase_amount' => '+',
+            'decrease_amount' => '−',
+            'increase_percent' => '+',
+            'decrease_percent' => '−',
+        ];
+
+        $label = $labels[$action] ?? $action;
+        $suffix = in_array($action, ['increase_percent', 'decrease_percent']) ? '%' : '';
+
+        $parts = ["{$label}{$value}{$suffix}"];
+
+        if ($rounding !== 'none') {
+            $roundLabels = [
+                'nearest_01' => '· nearest cent',
+                'nearest_whole' => '· whole number',
+                'end_99' => '· ends in .99',
+                'end_custom' => '· custom ending',
+            ];
+            $parts[] = $roundLabels[$rounding] ?? "· {$rounding}";
+        }
+
+        if ($this->task_type === self::TYPE_PRICE) {
+            return implode(' ', $parts);
+        }
+
+        return ucfirst(str_replace('_', ' ', $action));
+    }
+
+    public function productLinks(): array
+    {
+        if (empty($this->product_ids) || !$this->user) {
+            return [];
+        }
+
+        $domain = str_replace('.myshopify.com', '', $this->user->name);
+        $links = [];
+
+        foreach (array_slice($this->product_ids, 0, 5) as $id) {
+            $links[] = [
+                'id' => $id,
+                'url' => "https://admin.shopify.com/store/{$domain}/products/{$id}",
+            ];
+        }
+
+        return $links;
+    }
+
+    public function productCountLabel(): string
+    {
+        if ($this->isAllProducts()) {
+            return 'All products';
+        }
+
+        $count = $this->productCount();
+
+        return $count . ' product' . ($count !== 1 ? 's' : '');
     }
 }

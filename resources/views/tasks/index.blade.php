@@ -20,18 +20,68 @@
         @else
             <s-table>
                 <s-table-header-row>
-                    <s-table-header>Type</s-table-header>
+                    <s-table-header>Task</s-table-header>
+                    <s-table-header>Action</s-table-header>
                     <s-table-header>Products</s-table-header>
                     <s-table-header>Status</s-table-header>
-                    <s-table-header>Created</s-table-header>
+                    <s-table-header>When</s-table-header>
                 </s-table-header-row>
                 <s-table-body>
                 @foreach($tasks as $task)
                 <s-table-row>
-                    <s-table-cell>@if($task->task_type === 'price') 💰 Price @elseif($task->task_type === 'inventory') 📦 Inventory @elseif($task->task_type === 'tags') 🏷️ Tags @else {{ ucfirst($task->task_type) }} @endif</s-table-cell>
-                    <s-table-cell>{{ $task->productCount() ?: 'All' }}</s-table-cell>
-                    <s-table-cell><s-badge tone="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'caution' : 'info')) }}">{{ ucfirst($task->status) }}</s-badge></s-table-cell>
-                    <s-table-cell>{{ $task->created_at->diffForHumans() }}</s-table-cell>
+                    <s-table-cell>
+                        @if($task->task_type === 'price') 💰 Price
+                        @elseif($task->task_type === 'inventory') 📦 Inventory
+                        @elseif($task->task_type === 'tags') 🏷️ Tags
+                        @else {{ ucfirst($task->task_type) }}
+                        @endif
+                    </s-table-cell>
+
+                    <s-table-cell>
+                        <span style="font-weight:500;">{{ $task->actionSummary() }}</span>
+                        @if($task->failure_reason)
+                            <s-badge tone="critical" style="margin-left:6px;">error</s-badge>
+                        @endif
+                    </s-table-cell>
+
+                    <s-table-cell>
+                        @if($task->isAllProducts())
+                            <span style="color:var(--p-color-text-subdued);">All products</span>
+                        @else
+                            @php $links = $task->productLinks(); @endphp
+                            @if(count($links) <= 3)
+                                @foreach($links as $link)
+                                    <a href="{{ $link['url'] }}" target="_blank" rel="noopener" style="display:block;color:var(--p-color-text-primary);text-decoration:none;font-size:13px;">
+                                        🛍️ Product #{{ $link['id'] }}
+                                    </a>
+                                @endforeach
+                            @else
+                                <details>
+                                    <summary style="cursor:pointer;color:var(--p-color-text-primary);">
+                                        {{ $task->productCountLabel() }}
+                                    </summary>
+                                    @foreach($links as $link)
+                                        <a href="{{ $link['url'] }}" target="_blank" rel="noopener" style="display:block;color:var(--p-color-text-primary);text-decoration:none;font-size:13px;padding-left:8px;">
+                                            🛍️ #{{ $link['id'] }}
+                                        </a>
+                                    @endforeach
+                                    @if($task->productCount() > 5)
+                                        <span style="font-size:12px;color:var(--p-color-text-subdued);padding-left:8px;">
+                                            +{{ $task->productCount() - 5 }} more
+                                        </span>
+                                    @endif
+                                </details>
+                            @endif
+                        @endif
+                    </s-table-cell>
+
+                    <s-table-cell>
+                        <s-badge tone="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'caution' : 'info')) }}">
+                            {{ ucfirst($task->status) }}
+                        </s-badge>
+                    </s-table-cell>
+
+                    <s-table-cell style="white-space:nowrap;">{{ $task->created_at->diffForHumans() }}</s-table-cell>
                 </s-table-row>
                 @endforeach
                 </s-table-body>
