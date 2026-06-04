@@ -60,7 +60,7 @@ class EditorController extends Controller
                 'rounding' => $validated['rounding'] ?? 'none',
                 'rounding_value' => $validated['rounding_value'] ?? null,
                 'selection_mode' => $validated['selection_mode'],
-                'apply_variants' => (bool) ($validated['apply_variants'] ?? true),
+                'apply_variants' => (bool) ($validated['apply_variants'] ?? false),
             ],
             'product_ids' => $productIds,
         ]);

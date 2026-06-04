@@ -42,8 +42,11 @@
             <s-section heading="3. Options">
                 <s-paragraph tone="subdued">Additional inventory settings.</s-paragraph>
 
+                <input type="hidden" name="track_inventory" value="0">
                 <s-checkbox label="Track inventory" name="track_inventory" value="1"></s-checkbox>
+                <input type="hidden" name="continue_selling" value="0">
                 <s-checkbox label="Continue selling when out of stock" name="continue_selling" value="1"></s-checkbox>
+                <input type="hidden" name="apply_variants" value="0">
                 <s-checkbox label="Apply to variants" name="apply_variants" value="1" checked></s-checkbox>
             </s-section>
         </form>

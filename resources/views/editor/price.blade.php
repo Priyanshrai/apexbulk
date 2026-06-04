@@ -64,6 +64,7 @@
                     <s-number-field label="Custom ending value (0.00 - 0.99)" name="rounding_value" min="0" max="0.99" step="0.01" placeholder="0.99"></s-number-field>
                 </div>
 
+                <input type="hidden" name="apply_variants" value="0">
                 <s-checkbox label="Apply to product variants (recommended)" name="apply_variants" value="1" checked></s-checkbox>
             </s-section>
         </form>
