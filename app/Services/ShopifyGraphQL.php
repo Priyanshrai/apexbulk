@@ -342,10 +342,54 @@ class ShopifyGraphQL
         return $data['productVariantsBulkUpdate'] ?? [];
     }
 
+    public static function fetchCurrentQuantities($shop, array $items): array
+    {
+        // items: [['inventoryItemId' => '...', 'locationId' => '...'], ...]
+        $result = [];
+        foreach (array_chunk($items, 10) as $chunk) {
+            $ids = array_map(fn($i) => '"' . $i['inventoryItemId'] . '"', $chunk);
+            $idsStr = implode(', ', $ids);
+
+            $query = <<<GQL
+                {
+                    nodes(ids: [{$idsStr}]) {
+                        ... on InventoryItem {
+                            id
+                            inventoryLevel(locationId: "{$chunk[0]['locationId']}") {
+                                quantities(names: ["available"]) {
+                                    name
+                                    quantity
+                                }
+                            }
+                        }
+                    }
+                }
+            GQL;
+
+            $data = static::query($shop, $query);
+            $nodes = $data['nodes'] ?? [];
+
+            foreach ($nodes as $node) {
+                $qty = 0;
+                foreach (($node['inventoryLevel']['quantities'] ?? []) as $q) {
+                    if ($q['name'] === 'available') {
+                        $qty = (int) $q['quantity'];
+                        break;
+                    }
+                }
+                $result[$node['id']] = $qty;
+            }
+
+            usleep(100000);
+        }
+
+        return $result;
+    }
+
     private static function unwrap($data): array
     {
         if ($data instanceof ResponseAccess) {
-            return $data->toArray();
+            return json_decode(json_encode($data->toArray()), true);
         }
 
         if (is_array($data)) {

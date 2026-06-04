@@ -34,20 +34,28 @@ class ProcessInventoryRevertJob implements ShouldQueue
             return;
         }
 
+        // Fetch current quantities to use as changeFromQuantity
+        $items = [];
+        foreach ($logs as $log) {
+            $items[] = [
+                'inventoryItemId' => $log->original_data['inventoryItemId'] ?? '',
+                'locationId' => $log->original_data['locationId'] ?? '',
+            ];
+        }
+        $currentQtys = ShopifyGraphQL::fetchCurrentQuantities($shop, $items);
+
         $quantities = [];
         foreach ($logs as $log) {
-            $data = $log->original_data;
-            if (is_string($data)) {
-                $data = json_decode($data, true) ?? [];
-            }
+            $invItemId = $log->original_data['inventoryItemId'] ?? '';
             $quantities[] = [
-                'inventoryItemId' => $data['inventoryItemId'] ?? '',
-                'locationId' => $data['locationId'] ?? '',
-                'quantity' => (int) ($data['quantity'] ?? 0),
-                'changeFromQuantity' => 0,
+                'inventoryItemId' => $invItemId,
+                'locationId' => $log->original_data['locationId'] ?? '',
+                'quantity' => (int) ($log->original_data['quantity'] ?? 0),
+                'changeFromQuantity' => $currentQtys[$invItemId] ?? 0,
             ];
         }
 
+        $processed = 0;
         $errors = [];
         $chunks = array_chunk($quantities, 50);
 
@@ -57,8 +65,12 @@ class ProcessInventoryRevertJob implements ShouldQueue
             $userErrors = $result['userErrors'] ?? [];
             if (!empty($userErrors)) {
                 foreach ($userErrors as $err) {
-                    $errors[] = ($err['field'] ?? '?') . ': ' . ($err['message'] ?? '?');
+                    $field = is_scalar($err['field'] ?? null) ? (string) $err['field'] : '?';
+                    $msg = is_scalar($err['message'] ?? null) ? (string) $err['message'] : '?';
+                    $errors[] = $field . ': ' . $msg;
                 }
+            } else {
+                $processed += count($chunk);
             }
 
             usleep(250000);

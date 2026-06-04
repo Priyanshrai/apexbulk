@@ -36,20 +36,17 @@ class ProcessRevertJob implements ShouldQueue
 
         $byProduct = [];
         foreach ($logs as $log) {
-            $data = $log->original_data;
-            if (is_string($data)) {
-                $data = json_decode($data, true) ?? [];
-            }
             $pid = $log->shopify_product_id;
             if (!isset($byProduct[$pid])) {
                 $byProduct[$pid] = [];
             }
             $byProduct[$pid][] = [
                 'id' => $log->shopify_variant_id,
-                'price' => $data['price'] ?? '0.00',
+                'price' => $log->original_data['price'] ?? '0.00',
             ];
         }
 
+        $processed = 0;
         $errors = [];
 
         foreach ($byProduct as $productId => $variants) {
@@ -61,6 +58,8 @@ class ProcessRevertJob implements ShouldQueue
                 foreach ($userErrors as $err) {
                     $errors[] = ($err['field'] ?? '?') . ': ' . ($err['message'] ?? '?');
                 }
+            } else {
+                $processed += count($variants);
             }
 
             usleep(250000);
