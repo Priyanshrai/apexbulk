@@ -12,7 +12,7 @@
         'modalId' => 'confirm-price-modal',
         'formId' => 'price-form',
         'title' => 'Confirm Bulk Price Update',
-        'message' => 'This action will modify prices on your live products. Make sure you&apos;ve reviewed your settings before proceeding.',
+        'message' => 'This action will modify prices on your live products. Make sure you\'ve reviewed your settings before proceeding.',
     ])
 
     <s-page heading="Bulk Price Editor">

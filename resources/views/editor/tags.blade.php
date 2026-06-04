@@ -12,7 +12,7 @@
         'modalId' => 'confirm-tag-modal',
         'formId' => 'tag-form',
         'title' => 'Confirm Bulk Tag Update',
-        'message' => 'This action will modify tags on your live products. Make sure you&apos;ve reviewed your settings before proceeding.',
+        'message' => 'This action will modify tags on your live products. Make sure you\'ve reviewed your settings before proceeding.',
     ])
 
     <s-page heading="Bulk Tags Editor">

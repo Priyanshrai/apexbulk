@@ -12,7 +12,7 @@
         'modalId' => 'confirm-inv-modal',
         'formId' => 'inv-form',
         'title' => 'Confirm Bulk Inventory Update',
-        'message' => 'This action will modify inventory levels on your live products. Make sure you&apos;ve reviewed your settings before proceeding.',
+        'message' => 'This action will modify inventory levels on your live products. Make sure you\'ve reviewed your settings before proceeding.',
     ])
 
     <s-page heading="Bulk Inventory Editor">
