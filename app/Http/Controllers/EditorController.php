@@ -80,6 +80,7 @@ class EditorController extends Controller
     {
         $validated = $request->validate([
             'product_ids' => 'nullable|string',
+            'selection_mode' => 'required|in:all,manual',
             'location_id' => 'nullable|string',
             'action' => 'required|in:set_quantity,add_quantity,remove_quantity',
             'quantity' => 'required|integer|min:0|max:999999',
@@ -89,8 +90,11 @@ class EditorController extends Controller
         ]);
 
         $productIds = null;
-        if (!empty($validated['product_ids'])) {
+        if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
             $productIds = json_decode($validated['product_ids'], true);
+            if (empty($productIds)) {
+                return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
         }
 
         $task = BulkEditTask::create([

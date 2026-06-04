@@ -23,8 +23,16 @@
 
             <s-section heading="1. Select Products">
                 <s-paragraph tone="subdued">Choose which products to update inventory for.</s-paragraph>
-                <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
-                <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+
+                <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
+                    <s-option value="all">All Products</s-option>
+                    <s-option value="manual">Manual Selection</s-option>
+                </s-select>
+
+                <div id="browse-section" style="display:none;">
+                    <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
+                    <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+                </div>
             </s-section>
 
             <s-section heading="2. Location">
@@ -36,6 +44,7 @@
                         <s-option value="{{ $loc['id'] }}">{{ $loc['name'] }}</s-option>
                     @endforeach
                 </s-select>
+                <s-paragraph tone="subdued" style="margin-top:4px;">💡 Only locations where the product is currently stocked will be updated.</s-paragraph>
             </s-section>
 
             <s-section heading="3. Inventory Rule">
@@ -79,6 +88,11 @@
             return;
         }
         shopify.modal.show(modalId);
+    }
+
+    function toggleBrowse() {
+        const mode = document.querySelector('[name="selection_mode"]').value;
+        document.getElementById('browse-section').style.display = mode === 'manual' ? 'block' : 'none';
     }
 
     function openResourcePicker() {
