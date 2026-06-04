@@ -26,11 +26,18 @@ class EditorController extends Controller
             'product_ids' => 'nullable|string',
             'selection_mode' => 'required|in:all,manual',
             'action' => 'required|in:set_specific,increase_amount,decrease_amount,increase_percent,decrease_percent',
-            'value' => 'required|numeric|min:0',
+            'value' => 'required|numeric|min:0|max:99999999',
             'rounding' => 'nullable|in:none,nearest_01,nearest_whole,end_99,end_custom',
             'rounding_value' => 'nullable|numeric|min:0|max:0.99',
             'apply_variants' => 'nullable|boolean',
         ]);
+
+        // Block: set_specific with 0 can make products free — log warning
+        if ($validated['action'] === 'set_specific' && (float) $validated['value'] === 0.0) {
+            \Log::warning('Price task: set_specific to 0 — products will become free', [
+                'shop' => Auth::user()->name,
+            ]);
+        }
 
         // Decode JSON product IDs, or null for "all products"
         $productIds = null;
