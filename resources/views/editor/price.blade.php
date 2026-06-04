@@ -3,10 +3,17 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Price Editor">
-        <s-button variant="primary" onclick="document.getElementById('price-form').submit()">⚡ Execute</s-button>
+        <button variant="primary" onclick="shopify.modal.show('confirm-price-modal')">⚡ Execute</button>
     </ui-title-bar>
 
     @include('components.nav-menu')
+
+    @include('components.confirm-modal', [
+        'modalId' => 'confirm-price-modal',
+        'formId' => 'price-form',
+        'title' => 'Confirm Bulk Price Update',
+        'message' => 'This action will modify prices on your live products. Make sure you&apos;ve reviewed your settings before proceeding.',
+    ])
 
     <s-page heading="Bulk Price Editor">
 

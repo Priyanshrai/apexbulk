@@ -3,10 +3,17 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Tags Editor">
-        <s-button variant="primary" onclick="document.getElementById('tag-form').submit()">⚡ Execute</s-button>
+        <button variant="primary" onclick="shopify.modal.show('confirm-tag-modal')">⚡ Execute</button>
     </ui-title-bar>
 
     @include('components.nav-menu')
+
+    @include('components.confirm-modal', [
+        'modalId' => 'confirm-tag-modal',
+        'formId' => 'tag-form',
+        'title' => 'Confirm Bulk Tag Update',
+        'message' => 'This action will modify tags on your live products. Make sure you&apos;ve reviewed your settings before proceeding.',
+    ])
 
     <s-page heading="Bulk Tags Editor">
 

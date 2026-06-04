@@ -3,10 +3,17 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Inventory Editor">
-        <s-button variant="primary" onclick="document.getElementById('inv-form').submit()">⚡ Execute</s-button>
+        <button variant="primary" onclick="shopify.modal.show('confirm-inv-modal')">⚡ Execute</button>
     </ui-title-bar>
 
     @include('components.nav-menu')
+
+    @include('components.confirm-modal', [
+        'modalId' => 'confirm-inv-modal',
+        'formId' => 'inv-form',
+        'title' => 'Confirm Bulk Inventory Update',
+        'message' => 'This action will modify inventory levels on your live products. Make sure you&apos;ve reviewed your settings before proceeding.',
+    ])
 
     <s-page heading="Bulk Inventory Editor">
 

@@ -5,18 +5,18 @@ namespace App\Jobs;
 use App\Models\BulkEditTask;
 use App\Models\TaskRevertLog;
 use App\Services\PriceCalculator;
+use App\Services\ShopifyGraphQL;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Osiset\ShopifyApp\Contracts\ShopModel;
 
 class ProcessPriceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $timeout = 1800;
+    public $timeout = 3600;
 
     public function __construct(
         protected int $taskId,
@@ -33,7 +33,7 @@ class ProcessPriceJob implements ShouldQueue
         $value = (float) $params['value'];
         $rounding = $params['rounding'] ?? 'none';
         $roundingValue = $params['rounding_value'] ?? null;
-
+        $applyVariants = $params['apply_variants'] ?? true;
         $productIds = $task->product_ids;
 
         \Log::info('PriceJob: Starting', [
@@ -41,143 +41,106 @@ class ProcessPriceJob implements ShouldQueue
             'action' => $action,
             'value' => $value,
             'rounding' => $rounding,
+            'apply_variants' => $applyVariants,
             'product_ids_count' => $productIds ? count($productIds) : 'ALL',
         ]);
 
         try {
-            $allProducts = $this->fetchProducts($shop, $productIds);
+            $allEdges = ShopifyGraphQL::fetchProducts($shop, $productIds);
 
-            \Log::info('PriceJob: Products fetched', [
-                'count' => count($allProducts),
-            ]);
+            \Log::info('PriceJob: Products fetched', ['count' => count($allEdges)]);
 
             $processed = 0;
+            $skipped = 0;
             $errors = [];
+            $apiCalls = 0;
 
-            foreach ($allProducts as $product) {
-                $productId = $product['node']['id'];
-                $gid = $this->extractId($productId);
+            foreach ($allEdges as $index => $edge) {
+                $productGid = $edge['node']['id'];
+                $gid = ShopifyGraphQL::extractId($productGid);
+                $variantEdges = $edge['node']['variants']['edges'] ?? [];
 
-                foreach ($product['node']['variants']['edges'] as $variantEdge) {
-                    $variant = $variantEdge['node'];
-                    $variantId = $variant['id'];
-                    $currentPrice = (float) $variant['price'];
+                if (!$applyVariants) {
+                    $variantEdges = array_slice($variantEdges, 0, 1);
+                }
 
-                    try {
-                        $newPrice = PriceCalculator::calculate($currentPrice, $action, $value);
-                        $newPrice = PriceCalculator::round($newPrice, $rounding, $roundingValue);
+                $variantUpdates = [];
+                $revertLogs = [];
 
-                        if ($newPrice == $currentPrice) continue;
+                foreach ($variantEdges as $ve) {
+                    $variantId = $ve['node']['id'];
+                    $currentPrice = (float) $ve['node']['price'];
 
-                        TaskRevertLog::create([
-                            'bulk_edit_task_id' => $task->id,
-                            'shopify_product_id' => $gid,
-                            'shopify_variant_id' => $variantId,
-                            'original_data' => ['price' => (string) $currentPrice],
-                        ]);
+                    $newPrice = PriceCalculator::calculate($currentPrice, $action, $value);
+                    $newPrice = PriceCalculator::round($newPrice, $rounding, $roundingValue);
 
-                        $this->updateVariantPrice($shop, $variantId, $newPrice);
-                        $processed++;
-                    } catch (\Exception $e) {
-                        $errors[$variantId] = $e->getMessage();
+                    if ($newPrice == $currentPrice) {
+                        $skipped++;
+                        continue;
                     }
+
+                    $variantUpdates[] = [
+                        'id' => $variantId,
+                        'price' => number_format($newPrice, 2, '.', ''),
+                    ];
+
+                    $revertLogs[] = [
+                        'bulk_edit_task_id' => $task->id,
+                        'shopify_product_id' => $gid,
+                        'shopify_variant_id' => $variantId,
+                        'original_data' => json_encode(['price' => (string) $currentPrice]),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                if (empty($variantUpdates)) {
+                    continue;
+                }
+
+                $result = ShopifyGraphQL::updateVariantPrices($shop, $productGid, $variantUpdates);
+                $apiCalls++;
+
+                usleep(250000);
+
+                $userErrors = $result['userErrors'] ?? [];
+
+                if (!empty($userErrors)) {
+                    foreach ($userErrors as $err) {
+                        $errors[] = ($err['field'] ?? '?') . ': ' . ($err['message'] ?? '?');
+                    }
+                } else {
+                    TaskRevertLog::insert($revertLogs);
+                    $processed += count($variantUpdates);
+                }
+
+                if (($index + 1) % 50 === 0) {
+                    \Log::info('PriceJob: Progress', [
+                        'task_id' => $task->id,
+                        'done' => $index + 1,
+                        'total' => count($allEdges),
+                        'processed' => $processed,
+                    ]);
                 }
             }
 
             \Log::info('PriceJob: Complete', [
                 'processed' => $processed,
+                'skipped' => $skipped,
                 'errors' => count($errors),
             ]);
 
             $task->update([
                 'status' => empty($errors) ? BulkEditTask::STATUS_COMPLETED : BulkEditTask::STATUS_FAILED,
-                'failure_reason' => empty($errors) ? null : json_encode($errors),
+                'failure_reason' => empty($errors) ? null : json_encode(array_slice($errors, 0, 50)),
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('PriceJob: Failed', ['task_id' => $task->id, 'error' => $e->getMessage()]);
             $task->update([
                 'status' => BulkEditTask::STATUS_FAILED,
                 'failure_reason' => $e->getMessage(),
             ]);
         }
-    }
-
-    /**
-     * Fetch products with variants & prices from Shopify.
-     */
-    private function fetchProducts(ShopModel $shop, ?array $productIds): array
-    {
-        $allProducts = [];
-        $cursor = null;
-
-        do {
-            $query = '{
-                products(first: 250) {
-                    edges {
-                        node {
-                            id
-                            title
-                            variants(first: 100) {
-                                edges {
-                                    node {
-                                        id
-                                        price
-                                    }
-                                }
-                            }
-                        }
-                        cursor
-                    }
-                    pageInfo { hasNextPage }
-                }
-            }';
-
-            $response = $shop->api()->graph($query);
-            $products = $response['body']['data']['products'] ?? [];
-            $edges = (array) ($products['edges'] ?? []);
-            $allProducts = array_merge($allProducts, $edges);
-
-            $pageInfo = (array) ($products['pageInfo'] ?? []);
-            if (!empty($pageInfo['hasNextPage']) && !empty($edges)) {
-                $lastEdge = end($edges);
-                $cursor = $lastEdge['cursor'] ?? null;
-            } else {
-                $cursor = null;
-            }
-        } while ($cursor);
-
-        // Filter by specific product IDs in PHP (Shopify query param doesn't support id: filter)
-        if ($productIds && count($productIds) > 0) {
-            $allProducts = array_filter($allProducts, function ($product) use ($productIds) {
-                $id = $this->extractId($product['node']['id']);
-                return in_array($id, $productIds);
-            });
-        }
-
-        return array_values($allProducts);
-    }
-
-    /**
-     * Update a single variant price via GraphQL.
-     */
-    private function updateVariantPrice(ShopModel $shop, string $variantId, float $newPrice): void
-    {
-        $formattedPrice = number_format($newPrice, 2, '.', '');
-        $query = sprintf('mutation { productVariantUpdate(input: { id: "%s", price: "%s" }) { productVariant { id price } userErrors { field message } } }', $variantId, $formattedPrice);
-
-        $response = $shop->api()->graph($query);
-        $userErrors = $response['body']['data']['productVariantUpdate']['userErrors'] ?? [];
-        if (!empty($userErrors)) {
-            \Log::warning('PriceJob: variant update error', [
-                'variant_id' => $variantId,
-                'new_price' => $formattedPrice,
-                'errors' => $userErrors,
-            ]);
-        }
-    }
-
-    private function extractId(string $gid): string
-    {
-        return explode('/', $gid)[4] ?? $gid;
     }
 }

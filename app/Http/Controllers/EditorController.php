@@ -24,17 +24,21 @@ class EditorController extends Controller
     {
         $validated = $request->validate([
             'product_ids' => 'nullable|string',
-            'selection_mode' => 'nullable|in:all,manual',
+            'selection_mode' => 'required|in:all,manual',
             'action' => 'required|in:set_specific,increase_amount,decrease_amount,increase_percent,decrease_percent',
             'value' => 'required|numeric|min:0',
             'rounding' => 'nullable|in:none,nearest_01,nearest_whole,end_99,end_custom',
-            'rounding_value' => 'nullable|numeric',
+            'rounding_value' => 'nullable|numeric|min:0|max:0.99',
+            'apply_variants' => 'nullable|boolean',
         ]);
 
         // Decode JSON product IDs, or null for "all products"
         $productIds = null;
         if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
             $productIds = json_decode($validated['product_ids'], true);
+            if (empty($productIds)) {
+                return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
         }
 
         \Log::info('Price task submitted', [
@@ -43,6 +47,7 @@ class EditorController extends Controller
             'value' => $validated['value'],
             'rounding' => $validated['rounding'] ?? 'none',
             'product_count' => $productIds ? count($productIds) : 'ALL',
+            'apply_variants' => $validated['apply_variants'] ?? true,
         ]);
 
         $task = BulkEditTask::create([
@@ -54,6 +59,8 @@ class EditorController extends Controller
                 'value' => $validated['value'],
                 'rounding' => $validated['rounding'] ?? 'none',
                 'rounding_value' => $validated['rounding_value'] ?? null,
+                'selection_mode' => $validated['selection_mode'],
+                'apply_variants' => (bool) ($validated['apply_variants'] ?? true),
             ],
             'product_ids' => $productIds,
         ]);
