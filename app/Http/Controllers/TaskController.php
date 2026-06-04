@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BulkEditTask;
 use App\Jobs\ProcessRevertJob;
+use App\Jobs\ProcessInventoryRevertJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -39,8 +40,13 @@ class TaskController extends Controller
         }
 
         $task->update(['status' => BulkEditTask::STATUS_REVERTING]);
-        ProcessRevertJob::dispatch($task->id);
 
-        return back()->with('success', 'Revert started! Prices are being restored.');
+        if ($task->task_type === BulkEditTask::TYPE_PRICE) {
+            ProcessRevertJob::dispatch($task->id);
+        } else {
+            ProcessInventoryRevertJob::dispatch($task->id);
+        }
+
+        return back()->with('success', 'Revert started!');
     }
 }

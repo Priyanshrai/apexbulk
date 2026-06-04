@@ -11,7 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class ProcessRevertJob implements ShouldQueue
+class ProcessInventoryRevertJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -34,27 +34,25 @@ class ProcessRevertJob implements ShouldQueue
             return;
         }
 
-        $byProduct = [];
+        $quantities = [];
         foreach ($logs as $log) {
             $data = $log->original_data;
             if (is_string($data)) {
                 $data = json_decode($data, true) ?? [];
             }
-            $pid = $log->shopify_product_id;
-            if (!isset($byProduct[$pid])) {
-                $byProduct[$pid] = [];
-            }
-            $byProduct[$pid][] = [
-                'id' => $log->shopify_variant_id,
-                'price' => $data['price'] ?? '0.00',
+            $quantities[] = [
+                'inventoryItemId' => $data['inventoryItemId'] ?? '',
+                'locationId' => $data['locationId'] ?? '',
+                'quantity' => (int) ($data['quantity'] ?? 0),
+                'changeFromQuantity' => 0,
             ];
         }
 
         $errors = [];
+        $chunks = array_chunk($quantities, 50);
 
-        foreach ($byProduct as $productId => $variants) {
-            $productGid = "gid://shopify/Product/{$productId}";
-            $result = ShopifyGraphQL::updateVariantPrices($shop, $productGid, $variants);
+        foreach ($chunks as $chunk) {
+            $result = ShopifyGraphQL::setInventoryQuantities($shop, $chunk);
 
             $userErrors = $result['userErrors'] ?? [];
             if (!empty($userErrors)) {
