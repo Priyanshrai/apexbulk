@@ -25,11 +25,14 @@
                 @foreach($tasks as $task)
                 <s-table-row>
                     <s-table-cell>
+                        <span style="font-weight:600;">#{{ $task->id }}</span>
+                        <span style="font-size:12px;color:var(--p-color-text-subdued);">
                         @if($task->task_type === 'price') 💰 Price
                         @elseif($task->task_type === 'inventory') 📦 Inventory
                         @elseif($task->task_type === 'tags') 🏷️ Tags
                         @else {{ ucfirst($task->task_type) }}
                         @endif
+                        </span>
                     </s-table-cell>
 
                     <s-table-cell>

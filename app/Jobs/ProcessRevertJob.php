@@ -34,19 +34,36 @@ class ProcessRevertJob implements ShouldQueue
             return;
         }
 
+        if ($task->task_type === BulkEditTask::TYPE_PRICE) {
+            $this->revertPrice($task, $shop, $logs);
+        } elseif ($task->task_type === BulkEditTask::TYPE_INVENTORY) {
+            $this->revertInventory($task, $shop, $logs);
+        } else {
+            $task->update([
+                'status' => BulkEditTask::STATUS_FAILED,
+                'failure_reason' => 'Unsupported task type for revert: ' . $task->task_type,
+            ]);
+        }
+    }
+
+    private function revertPrice(BulkEditTask $task, $shop, $logs): void
+    {
         $byProduct = [];
         foreach ($logs as $log) {
+            $data = $log->original_data;
+            if (is_string($data)) {
+                $data = json_decode($data, true) ?? [];
+            }
             $pid = $log->shopify_product_id;
             if (!isset($byProduct[$pid])) {
                 $byProduct[$pid] = [];
             }
             $byProduct[$pid][] = [
                 'id' => $log->shopify_variant_id,
-                'price' => $log->original_data['price'] ?? '0.00',
+                'price' => $data['price'] ?? '0.00',
             ];
         }
 
-        $processed = 0;
         $errors = [];
 
         foreach ($byProduct as $productId => $variants) {
@@ -58,8 +75,50 @@ class ProcessRevertJob implements ShouldQueue
                 foreach ($userErrors as $err) {
                     $errors[] = ($err['field'] ?? '?') . ': ' . ($err['message'] ?? '?');
                 }
-            } else {
-                $processed += count($variants);
+            }
+
+            usleep(250000);
+        }
+
+        if (!empty($errors)) {
+            $task->update([
+                'status' => BulkEditTask::STATUS_FAILED,
+                'failure_reason' => json_encode(array_slice($errors, 0, 20)),
+            ]);
+            return;
+        }
+
+        $task->update(['status' => BulkEditTask::STATUS_REVERTED]);
+    }
+
+    private function revertInventory(BulkEditTask $task, $shop, $logs): void
+    {
+        $quantities = [];
+        foreach ($logs as $log) {
+            $data = $log->original_data;
+            if (is_string($data)) {
+                $data = json_decode($data, true) ?? [];
+            }
+            \Log::info('RevertInv: data', ['data' => $data]);
+            $quantities[] = [
+                'inventoryItemId' => (string) ($data['inventoryItemId'] ?? ''),
+                'locationId' => (string) ($data['locationId'] ?? ''),
+                'quantity' => (int) ($data['quantity'] ?? 0),
+                'changeFromQuantity' => 0,
+            ];
+        }
+
+        $errors = [];
+        $chunks = array_chunk($quantities, 50);
+
+        foreach ($chunks as $chunk) {
+            $result = ShopifyGraphQL::setInventoryQuantities($shop, $chunk);
+
+            $userErrors = $result['userErrors'] ?? [];
+            if (!empty($userErrors)) {
+                foreach ($userErrors as $err) {
+                    $errors[] = ($err['field'] ?? '?') . ': ' . ($err['message'] ?? '?');
+                }
             }
 
             usleep(250000);

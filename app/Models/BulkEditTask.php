@@ -109,6 +109,20 @@ class BulkEditTask extends Model
             return implode(' ', $parts);
         }
 
+        if ($this->task_type === self::TYPE_INVENTORY) {
+            $qty = $p['quantity'] ?? 0;
+            $locId = $p['location_id'] ?? 'all';
+            $locName = $locId === 'all' ? 'all locations' : 'loc #' . last(explode('/', (string) $locId));
+            $labels = [
+                'set_quantity' => "Set to {$qty}",
+                'add_quantity' => "Add {$qty}",
+                'remove_quantity' => "Remove {$qty}",
+            ];
+            $label = $labels[$action] ?? ucfirst(str_replace('_', ' ', $action));
+            $track = !empty($p['track_inventory']) ? ' · track on' : '';
+            return "{$label} ({$locName}){$track}";
+        }
+
         return ucfirst(str_replace('_', ' ', $action));
     }
 
