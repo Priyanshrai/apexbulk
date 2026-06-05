@@ -133,6 +133,8 @@ class EditorController extends Controller
             'tags' => 'nullable|array',
         ]);
 
+        $tags = $validated['tags'] ?? [];
+
         $productIds = null;
         if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
             $productIds = json_decode($validated['product_ids'], true);
@@ -147,7 +149,7 @@ class EditorController extends Controller
             'status' => BulkEditTask::STATUS_PENDING,
             'parameters' => [
                 'action' => $validated['action'],
-                'tags' => $validated['tags'] ?? [],
+                'tags' => $tags,
             ],
             'product_ids' => $productIds,
         ]);

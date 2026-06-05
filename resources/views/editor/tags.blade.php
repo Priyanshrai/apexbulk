@@ -48,7 +48,7 @@
                 <div id="tags-field">
                     <s-text-field label="Tags (comma separated)" name="tags_input" placeholder="summer, sale, clearance"></s-text-field>
                 </div>
-                <input type="hidden" name="tags" id="tags-array">
+                <div id="tags-hidden-inputs"></div>
             </s-section>
         </form>
 
@@ -71,10 +71,30 @@
         document.getElementById('tags-field').style.display = action === 'clear' ? 'none' : 'block';
     }
 
+    function buildTagsArray() {
+        const action = document.querySelector('[name="action"]').value;
+        const container = document.getElementById('tags-hidden-inputs');
+        // Clear old inputs
+        container.innerHTML = '';
+
+        if (action === 'clear') {
+            return;
+        }
+
+        const input = document.querySelector('[name="tags_input"]');
+        const tags = input.value.split(',').map(t => t.trim()).filter(Boolean);
+        tags.forEach(tag => {
+            const el = document.createElement('input');
+            el.type = 'hidden';
+            el.name = 'tags[]';
+            el.value = tag;
+            container.appendChild(el);
+        });
+    }
+
     function openConfirmModal(modalId, formId) {
         const action = document.querySelector('[name="action"]');
         if (action && action.value === 'clear') {
-            document.getElementById('tags-array').value = '[]';
             shopify.modal.show(modalId);
             return;
         }
@@ -84,20 +104,12 @@
             if (tagsInput && tagsInput.focus) tagsInput.focus();
             return;
         }
-        const tags = tagsInput.value.split(',').map(t => t.trim()).filter(Boolean);
-        document.getElementById('tags-array').value = JSON.stringify(tags);
+        buildTagsArray();
         shopify.modal.show(modalId);
     }
 
     document.getElementById('tag-form').addEventListener('submit', function(e) {
-        const action = document.querySelector('[name="action"]').value;
-        if (action === 'clear') {
-            document.getElementById('tags-array').value = '[]';
-            return;
-        }
-        const input = document.querySelector('[name="tags_input"]');
-        const tags = input.value.split(',').map(t => t.trim()).filter(Boolean);
-        document.getElementById('tags-array').value = JSON.stringify(tags);
+        buildTagsArray();
     });
     function openResourcePicker() {
         shopify.resourcePicker({ type: 'product', multiple: true }).then(result => {
