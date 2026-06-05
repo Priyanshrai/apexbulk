@@ -82,10 +82,7 @@
                     <s-table-cell style="white-space:nowrap;">{{ $task->created_at->diffForHumans() }}</s-table-cell>
                     <s-table-cell>
                         @if($task->status === 'completed')
-                            <form method="POST" action="{{ url('/tasks/' . $task->id . '/revert') }}?{{ http_build_query(request()->query()) }}" style="margin:0;">
-                                @csrf
-                                <s-button type="submit" size="small">↩ Revert</s-button>
-                            </form>
+                            <s-button size="small" onclick="document.getElementById('revert-task').value='{{ $task->id }}';shopify.modal.show('revert-modal')">↩ Revert</s-button>
                         @elseif($task->status === 'reverting')
                             <s-spinner size="small"></s-spinner>
                         @elseif($task->status === 'reverted')
@@ -118,5 +115,17 @@
         @endif
 
     </s-page>
+
+    <ui-modal id="revert-modal">
+        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+            <s-text tone="subdued">This will restore the original values for this task. Revert logs will be used to restore data.</s-text>
+            <s-banner tone="warning">This action cannot be undone. The original values will be set back via Shopify API.</s-banner>
+        </div>
+        <ui-title-bar title="Confirm Revert">
+            <button onclick="shopify.modal.hide('revert-modal')">Cancel</button>
+            <button variant="primary" onclick="shopify.modal.hide('revert-modal').then(()=>{var tid=document.getElementById('revert-task').value;var f=document.createElement('form');f.method='POST';f.action='/tasks/'+tid+'/revert'+location.search;var c=document.createElement('input');c.type='hidden';c.name='_token';c.value='{{ csrf_token() }}';f.appendChild(c);document.body.appendChild(f);f.submit();})">Confirm Revert</button>
+        </ui-title-bar>
+    </ui-modal>
+    <input type="hidden" id="revert-task">
 
 @endsection

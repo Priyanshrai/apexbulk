@@ -7,6 +7,6 @@
 
     <ui-title-bar title="{{ $title }}">
         <button onclick="shopify.modal.hide('{{ $modalId }}')">Cancel</button>
-        <button variant="primary" onclick="const f=document.getElementById('{{ $formId }}'); shopify.modal.hide('{{ $modalId }}').then(()=>f.requestSubmit?f.requestSubmit():f.submit())">Execute update</button>
+        <button variant="primary" onclick="(function(){var f=document.getElementById('{{ $formId }}');f.querySelectorAll('s-select,s-number-field,s-checkbox,s-text-field').forEach(function(el){var n=el.getAttribute('name');if(!n)return;var v=el.value!==undefined?el.value:(el.checked!==undefined?el.checked:'');var h=f.querySelector('input[type=hidden][data-pc='+n+']');if(!h){h=document.createElement('input');h.type='hidden';h.name=n;h.setAttribute('data-pc',n);f.appendChild(h);}h.value=v;});shopify.modal.hide('{{ $modalId }}').then(function(){f.submit();});})()">Execute update</button>
     </ui-title-bar>
 </ui-modal>
