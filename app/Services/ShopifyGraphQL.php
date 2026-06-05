@@ -74,6 +74,50 @@ class ShopifyGraphQL
         return array_values($allEdges);
     }
 
+    public static function fetchProductsWithTags($shop, ?array $productIds = null): array
+    {
+        $allEdges = [];
+        $cursor = null;
+
+        do {
+            $afterArg = $cursor ? ', after: "' . $cursor . '"' : '';
+
+            $query = <<<GQL
+                {
+                    products(first: 250{$afterArg}) {
+                        edges {
+                            node { id title tags }
+                            cursor
+                        }
+                        pageInfo { hasNextPage }
+                    }
+                }
+            GQL;
+
+            $data = static::query($shop, $query);
+            $products = $data['products'] ?? [];
+            $edges = $products['edges'] ?? [];
+            $allEdges = array_merge($allEdges, $edges);
+
+            $pageInfo = $products['pageInfo'] ?? [];
+            if (!empty($pageInfo['hasNextPage']) && !empty($edges)) {
+                $lastEdge = end($edges);
+                $cursor = $lastEdge['cursor'] ?? null;
+            } else {
+                $cursor = null;
+            }
+        } while ($cursor);
+
+        if ($productIds && count($productIds) > 0) {
+            $allEdges = array_filter($allEdges, function ($edge) use ($productIds) {
+                $gid = $edge['node']['id'] ?? '';
+                return in_array(static::extractId($gid), $productIds);
+            });
+        }
+
+        return array_values($allEdges);
+    }
+
     public static function updateVariantPrices($shop, string $productId, array $variants): array
     {
         $parts = [];
@@ -340,6 +384,52 @@ class ShopifyGraphQL
         $data = static::query($shop, $query);
 
         return $data['productVariantsBulkUpdate'] ?? [];
+    }
+
+    public static function updateProductTags($shop, string $productGid, string $action, array $tags = []): array
+    {
+        if ($action === 'clear') {
+            $tags = [];
+            $action = 'replace';
+        }
+
+        if ($action === 'replace') {
+            $tagsStr = !empty($tags) ? '"' . implode('", "', $tags) . '"' : '';
+            $query = <<<GQL
+                mutation {
+                    productUpdate(input: {id: "{$productGid}", tags: [{$tagsStr}]}) {
+                        product { id tags }
+                        userErrors { field message }
+                    }
+                }
+            GQL;
+        } elseif ($action === 'add') {
+            $tagsStr = '"' . implode('", "', $tags) . '"';
+            $query = <<<GQL
+                mutation {
+                    tagsAdd(id: "{$productGid}", tags: [{$tagsStr}]) {
+                        node { id }
+                        userErrors { field message }
+                    }
+                }
+            GQL;
+        } elseif ($action === 'remove') {
+            $tagsStr = '"' . implode('", "', $tags) . '"';
+            $query = <<<GQL
+                mutation {
+                    tagsRemove(id: "{$productGid}", tags: [{$tagsStr}]) {
+                        node { id }
+                        userErrors { field message }
+                    }
+                }
+            GQL;
+        } else {
+            return ['userErrors' => [['field' => 'action', 'message' => 'Unknown action: ' . $action]]];
+        }
+
+        $data = static::query($shop, $query);
+
+        return $data['productUpdate'] ?? $data['tagsAdd'] ?? $data['tagsRemove'] ?? [];
     }
 
     public static function fetchCurrentQuantities($shop, array $items): array

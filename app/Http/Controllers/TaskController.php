@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BulkEditTask;
 use App\Jobs\ProcessRevertJob;
 use App\Jobs\ProcessInventoryRevertJob;
+use App\Jobs\ProcessTagsRevertJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,8 +44,10 @@ class TaskController extends Controller
 
         if ($task->task_type === BulkEditTask::TYPE_PRICE) {
             ProcessRevertJob::dispatch($task->id);
-        } else {
+        } elseif ($task->task_type === BulkEditTask::TYPE_INVENTORY) {
             ProcessInventoryRevertJob::dispatch($task->id);
+        } else {
+            ProcessTagsRevertJob::dispatch($task->id);
         }
 
         return back()->with('success', 'Revert started!');

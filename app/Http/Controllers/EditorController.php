@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BulkEditTask;
 use App\Jobs\ProcessPriceJob;
 use App\Jobs\ProcessInventoryJob;
+use App\Jobs\ProcessTagsJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -127,9 +128,31 @@ class EditorController extends Controller
     {
         $validated = $request->validate([
             'product_ids' => 'nullable|string',
+            'selection_mode' => 'required|in:all,manual',
             'action' => 'required|in:add,remove,replace,clear',
             'tags' => 'nullable|array',
         ]);
+
+        $productIds = null;
+        if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
+            $productIds = json_decode($validated['product_ids'], true);
+            if (empty($productIds)) {
+                return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
+        }
+
+        $task = BulkEditTask::create([
+            'user_id' => Auth::id(),
+            'task_type' => BulkEditTask::TYPE_TAGS,
+            'status' => BulkEditTask::STATUS_PENDING,
+            'parameters' => [
+                'action' => $validated['action'],
+                'tags' => $validated['tags'] ?? [],
+            ],
+            'product_ids' => $productIds,
+        ]);
+
+        ProcessTagsJob::dispatch($task->id);
 
         return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
             ->with('success', 'Tags task created!');

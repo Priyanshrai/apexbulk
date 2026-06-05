@@ -23,8 +23,16 @@
 
             <s-section heading="1. Select Products">
                 <s-paragraph tone="subdued">Choose which products to update tags for.</s-paragraph>
-                <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
-                <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+
+                <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
+                    <s-option value="all">All Products</s-option>
+                    <s-option value="manual">Manual Selection</s-option>
+                </s-select>
+
+                <div id="browse-section" style="display:none;">
+                    <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
+                    <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+                </div>
             </s-section>
 
             <s-section heading="2. Tag Action">
@@ -50,6 +58,11 @@
     @parent
 <script>
     let selectedProductIds = [];
+
+    function toggleBrowse() {
+        const mode = document.querySelector('[name="selection_mode"]').value;
+        document.getElementById('browse-section').style.display = mode === 'manual' ? 'block' : 'none';
+    }
 
     function openConfirmModal(modalId, formId) {
         const action = document.querySelector('[name="action"]');

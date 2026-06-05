@@ -123,6 +123,18 @@ class BulkEditTask extends Model
             return "{$label} ({$locName}){$track}";
         }
 
+        if ($this->task_type === self::TYPE_TAGS) {
+            $tags = $p['tags'] ?? [];
+            $tagStr = !empty($tags) ? implode(', ', $tags) : 'all tags';
+            $labels = [
+                'add' => "Add: {$tagStr}",
+                'remove' => "Remove: {$tagStr}",
+                'replace' => "Replace: {$tagStr}",
+                'clear' => 'Clear all tags',
+            ];
+            return $labels[$action] ?? ucfirst(str_replace('_', ' ', $action));
+        }
+
         return ucfirst(str_replace('_', ' ', $action));
     }
 
