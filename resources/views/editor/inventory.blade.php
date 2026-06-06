@@ -81,12 +81,13 @@
             </s-section>
 
             <s-section heading="5. Schedule">
-                <s-paragraph tone="subdued">Run now or schedule for a later date and time.</s-paragraph>
+                <s-paragraph tone="subdued">Run now or schedule for a later time (your local time).</s-paragraph>
 
                 <input type="hidden" name="is_scheduled" value="0">
                 <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="var row=document.getElementById('schedule-row');row.style.display=this.checked?'flex':'none';if(this.checked){setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),100)}"></s-checkbox>
 
                 <div id="schedule-row" style="display:none;gap:12px;align-items:flex-end;margin-top:12px;">
+                    <input type="hidden" name="browser_tz" id="browser-tz">
                     <div style="flex:1;max-width:200px;">
                         <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Date</label>
                         <input type="date" name="schedule_date" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
@@ -107,6 +108,7 @@
     @parent
     @php $previewUrl = route('editor.inventory.preview') @endphp
 <script>
+    document.getElementById('browser-tz').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
     let selectedProductIds = [];
 
     function openConfirmModal(modalId, formId) {

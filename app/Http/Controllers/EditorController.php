@@ -19,8 +19,7 @@ class EditorController extends Controller
     {
         if (!$date || !$time) return null;
 
-        $shop = Auth::user();
-        $tz = $shop->timezone ?? 'UTC';
+        $tz = request('browser_tz', 'UTC');
 
         return Carbon::parse("{$date} {$time}", $tz)->setTimezone('UTC')->toDateTimeString();
     }
@@ -87,7 +86,7 @@ class EditorController extends Controller
         }
 
         $msg = $task->scheduled_at
-            ? 'Price update scheduled for ' . $task->scheduledAtForShop() . '!'
+            ? 'Price update scheduled!'
             : 'Price update task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
@@ -159,7 +158,7 @@ class EditorController extends Controller
         }
 
         $msg = $task->scheduled_at
-            ? 'Inventory update scheduled for ' . $task->scheduledAtForShop() . '!'
+            ? 'Inventory update scheduled!'
             : 'Inventory task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
@@ -217,7 +216,7 @@ class EditorController extends Controller
         }
 
         $msg = $task->scheduled_at
-            ? 'Tags update scheduled for ' . $task->scheduledAtForShop() . '!'
+            ? 'Tags update scheduled!'
             : 'Tags task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))

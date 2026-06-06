@@ -83,7 +83,7 @@
 
                     <s-table-cell style="white-space:nowrap;">
                         @if($task->isScheduled())
-                            ⏰ {{ $task->scheduledAtForShop() }}
+                            ⏰ <time class="local-time" datetime="{{ $task->scheduledAtLabel() }}">{{ $task->scheduled_at->format('M d, h:i A') }} UTC</time>
                         @else
                             {{ $task->created_at->diffForHumans() }}
                         @endif
@@ -136,5 +136,12 @@
         </ui-title-bar>
     </ui-modal>
     <input type="hidden" id="revert-task">
+
+<script>
+document.querySelectorAll('time.local-time').forEach(function(el) {
+    var d = new Date(el.getAttribute('datetime'));
+    el.textContent = d.toLocaleString(undefined, {month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+});
+</script>
 
 @endsection

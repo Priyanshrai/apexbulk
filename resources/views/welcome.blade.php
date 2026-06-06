@@ -71,7 +71,7 @@
                         <s-table-cell>@if($task->task_type === 'price') 💰 Price @elseif($task->task_type === 'inventory') 📦 Inventory @elseif($task->task_type === 'tags') 🏷️ Tags @else {{ ucfirst($task->task_type) }} @endif</s-table-cell>
                         <s-table-cell>{{ is_array($task->product_ids) ? count($task->product_ids) : 'All' }}</s-table-cell>
                         <s-table-cell><s-badge tone="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'caution' : 'info')) }}">{{ $task->isScheduled() ? 'Scheduled' : ucfirst($task->status) }}</s-badge></s-table-cell>
-                        <s-table-cell>@if($task->isScheduled()) ⏰ {{ $task->scheduledAtForShop() }} @else {{ $task->created_at->diffForHumans() }} @endif</s-table-cell>
+                        <s-table-cell>@if($task->isScheduled()) ⏰ <time class="local-time" datetime="{{ $task->scheduledAtLabel() }}">{{ $task->scheduled_at->format('M d, h:i A') }} UTC</time> @else {{ $task->created_at->diffForHumans() }} @endif</s-table-cell>
                     </s-table-row>
                     @endforeach
                     </s-table-body>
@@ -84,5 +84,12 @@
         </s-section>
 
     </s-page>
+
+<script>
+document.querySelectorAll('time.local-time').forEach(function(el) {
+    var d = new Date(el.getAttribute('datetime'));
+    el.textContent = d.toLocaleString(undefined, {month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+});
+</script>
 
 @endsection
