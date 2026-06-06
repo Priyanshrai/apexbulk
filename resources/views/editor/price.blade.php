@@ -186,7 +186,7 @@
         // When not expandable (1 variant or apply_variants off), show the single variant price inline
         if (!product.is_expandable && product.variants && product.variants.length === 1) {
             var v = product.variants[0];
-            var prefix = type === 'price' ? '$' : '';
+            var prefix = '';
             header.innerHTML =
                 '<div style="flex:1;min-width:0;">' +
                     '<span style="font-weight:500;font-size:13px;">🛍️ ' + escapeHtml(product.product_title) + '</span>' +
@@ -216,9 +216,9 @@
                 vRow.innerHTML =
                     '<span style="color:var(--p-color-text-subdued);flex:1;">' + escapeHtml(v.variant_title) + '</span>' +
                     '<span style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
-                        '<span style="color:var(--p-color-text-subdued);">$' + escapeHtml(v.old_value) + '</span>' +
+                        '<span style="color:var(--p-color-text-subdued);">' + escapeHtml(v.old_value) + '</span>' +
                         '<span style="color:var(--p-color-text-subdued);">→</span>' +
-                        '<span style="font-weight:600;color:var(--p-color-text-primary);">$' + escapeHtml(v.new_value) + '</span>' +
+                        '<span style="font-weight:600;color:var(--p-color-text-primary);">' + escapeHtml(v.new_value) + '</span>' +
                     '</span>';
                 variantList.appendChild(vRow);
             });
