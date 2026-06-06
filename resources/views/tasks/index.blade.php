@@ -77,11 +77,17 @@
 
                     <s-table-cell>
                         <s-badge tone="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'caution' : 'info')) }}">
-                            {{ ucfirst($task->status) }}
+                            {{ $task->isScheduled() ? 'Scheduled' : ucfirst($task->status) }}
                         </s-badge>
                     </s-table-cell>
 
-                    <s-table-cell style="white-space:nowrap;">{{ $task->created_at->diffForHumans() }}</s-table-cell>
+                    <s-table-cell style="white-space:nowrap;">
+                        @if($task->isScheduled())
+                            ⏰ {{ $task->scheduled_at->format('M d, h:i A') }}
+                        @else
+                            {{ $task->created_at->diffForHumans() }}
+                        @endif
+                    </s-table-cell>
                     <s-table-cell>
                         @if($task->status === 'completed')
                             <s-button size="small" onclick="document.getElementById('revert-task').value='{{ $task->id }}';shopify.modal.show('revert-modal')">↩ Revert</s-button>

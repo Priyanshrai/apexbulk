@@ -70,8 +70,8 @@
                     <s-table-row>
                         <s-table-cell>@if($task->task_type === 'price') 💰 Price @elseif($task->task_type === 'inventory') 📦 Inventory @elseif($task->task_type === 'tags') 🏷️ Tags @else {{ ucfirst($task->task_type) }} @endif</s-table-cell>
                         <s-table-cell>{{ is_array($task->product_ids) ? count($task->product_ids) : 'All' }}</s-table-cell>
-                        <s-table-cell><s-badge tone="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'caution' : 'info')) }}">{{ ucfirst($task->status) }}</s-badge></s-table-cell>
-                        <s-table-cell>{{ $task->created_at->diffForHumans() }}</s-table-cell>
+                        <s-table-cell><s-badge tone="{{ $task->status === 'completed' ? 'success' : ($task->status === 'failed' ? 'critical' : ($task->status === 'running' ? 'caution' : 'info')) }}">{{ $task->isScheduled() ? 'Scheduled' : ucfirst($task->status) }}</s-badge></s-table-cell>
+                        <s-table-cell>@if($task->isScheduled()) ⏰ {{ $task->scheduled_at->format('M d, h:i A') }} @else {{ $task->created_at->diffForHumans() }} @endif</s-table-cell>
                     </s-table-row>
                     @endforeach
                     </s-table-body>

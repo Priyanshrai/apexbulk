@@ -70,6 +70,11 @@ class BulkEditTask extends Model
         return count($this->product_ids);
     }
 
+    public function isScheduled(): bool
+    {
+        return $this->scheduled_at !== null && $this->status === self::STATUS_PENDING;
+    }
+
     public function isAllProducts(): bool
     {
         return empty($this->product_ids);

@@ -64,12 +64,21 @@ class EditorController extends Controller
                 'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
+            'scheduled_at' => $request->boolean('is_scheduled') && $request->input('schedule_at')
+                ? $request->input('schedule_at')
+                : null,
         ]);
 
-        ProcessPriceJob::dispatch($task->id);
+        if (!$task->scheduled_at) {
+            ProcessPriceJob::dispatch($task->id);
+        }
+
+        $msg = $task->scheduled_at
+            ? 'Price update scheduled for ' . $task->scheduled_at->format('M d, Y h:i A') . '!'
+            : 'Price update task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
-            ->with('success', 'Price update task created!');
+            ->with('success', $msg);
     }
 
     public function inventory()
@@ -127,12 +136,21 @@ class EditorController extends Controller
                 'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
+            'scheduled_at' => $request->boolean('is_scheduled') && $request->input('schedule_at')
+                ? $request->input('schedule_at')
+                : null,
         ]);
 
-        ProcessInventoryJob::dispatch($task->id);
+        if (!$task->scheduled_at) {
+            ProcessInventoryJob::dispatch($task->id);
+        }
+
+        $msg = $task->scheduled_at
+            ? 'Inventory update scheduled for ' . $task->scheduled_at->format('M d, Y h:i A') . '!'
+            : 'Inventory task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
-            ->with('success', 'Inventory task created!');
+            ->with('success', $msg);
     }
 
     public function tags()
@@ -176,12 +194,21 @@ class EditorController extends Controller
                 'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
+            'scheduled_at' => $request->boolean('is_scheduled') && $request->input('schedule_at')
+                ? $request->input('schedule_at')
+                : null,
         ]);
 
-        ProcessTagsJob::dispatch($task->id);
+        if (!$task->scheduled_at) {
+            ProcessTagsJob::dispatch($task->id);
+        }
+
+        $msg = $task->scheduled_at
+            ? 'Tags update scheduled for ' . $task->scheduled_at->format('M d, Y h:i A') . '!'
+            : 'Tags task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
-            ->with('success', 'Tags task created!');
+            ->with('success', $msg);
     }
 
     /**

@@ -77,6 +77,17 @@
                 <input type="hidden" name="apply_variants" value="0">
                 <s-checkbox label="Apply to product variants (recommended)" name="apply_variants" value="1" checked></s-checkbox>
             </s-section>
+
+            <s-section heading="4. Schedule">
+                <s-paragraph tone="subdued">Run now or schedule for a later time.</s-paragraph>
+
+                <input type="hidden" name="is_scheduled" value="0">
+                <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="document.getElementById('schedule-datetime').style.display=this.checked?'block':'none'"></s-checkbox>
+
+                <div id="schedule-datetime" style="display:none;">
+                    <s-text-field label="Date & Time (your local time)" name="schedule_at" type="datetime-local" placeholder="2026-06-15 14:30"></s-text-field>
+                </div>
+            </s-section>
         </form>
 
     </s-page>
