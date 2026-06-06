@@ -48,7 +48,7 @@ class ProcessTagsJob implements ShouldQueue
                     'bulk_edit_task_id' => $task->id,
                     'shopify_product_id' => $gid,
                     'shopify_variant_id' => '',
-                    'original_data' => json_encode(['tags' => $currentTags]),
+                    'original_data' => ['tags' => $currentTags],
                 ]);
 
                 // Skip if no change needed

@@ -87,7 +87,11 @@
     let selectedProductIds = [];
 
     function openConfirmModal(modalId, formId) {
-        const action = document.querySelector('[name="action"]');
+        const mode = document.querySelector('[name="selection_mode"]');
+        if (mode && mode.value === 'manual' && selectedProductIds.length === 0) {
+            alert('Please select at least one product before executing. Use "Browse Products" to pick products.');
+            return;
+        }
         const value = document.querySelector('[name="value"]');
         if (!value || value.value === '') {
             alert('Please enter a value before executing.');
@@ -114,6 +118,10 @@
         const summaryEl = document.getElementById(modalId + '-summary');
         const previewEl = document.getElementById(modalId + '-preview');
         const moreEl = document.getElementById(modalId + '-more');
+
+        // Disable Execute button while loading
+        var execBtn = document.getElementById(modalId + '-execute-btn');
+        if (execBtn) { execBtn.disabled = true; }
 
         // Show spinner in modal immediately
         summaryEl.style.display = 'block';
@@ -162,6 +170,9 @@
             } else {
                 moreEl.style.display = 'none';
             }
+
+            // Enable Execute button now that preview is ready
+            apexEnableExecute(modalId);
         } catch (err) {
             summaryEl.innerHTML = '⚠️ Could not load preview.';
             previewEl.innerHTML = '';

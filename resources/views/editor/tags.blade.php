@@ -101,6 +101,11 @@
     }
 
     function openConfirmModal(modalId, formId) {
+        const mode = document.querySelector('[name="selection_mode"]');
+        if (mode && mode.value === 'manual' && selectedProductIds.length === 0) {
+            alert('Please select at least one product before executing. Use "Browse Products" to pick products.');
+            return;
+        }
         const action = document.querySelector('[name="action"]');
         if (action && action.value !== 'clear') {
             const tagsInput = document.querySelector('[name="tags_input"]');
@@ -133,6 +138,10 @@
         const summaryEl = document.getElementById(modalId + '-summary');
         const previewEl = document.getElementById(modalId + '-preview');
         const moreEl = document.getElementById(modalId + '-more');
+
+        // Disable Execute button while loading
+        var execBtn = document.getElementById(modalId + '-execute-btn');
+        if (execBtn) { execBtn.disabled = true; }
 
         summaryEl.style.display = 'block';
         summaryEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><s-spinner size="small"></s-spinner> Fetching preview...</div>';
@@ -209,6 +218,9 @@
             } else {
                 moreEl.style.display = 'none';
             }
+
+            // Enable Execute button now that preview is ready
+            apexEnableExecute(modalId);
         } catch (err) {
             summaryEl.innerHTML = '⚠️ Could not load preview.';
             previewEl.innerHTML = '';

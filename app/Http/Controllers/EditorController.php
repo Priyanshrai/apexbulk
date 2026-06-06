@@ -36,7 +36,10 @@ class EditorController extends Controller
 
         // Decode JSON product IDs, or null for "all products"
         $productIds = null;
-        if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
+        if ($validated['selection_mode'] === 'manual') {
+            if (empty($validated['product_ids'])) {
+                return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
             $productIds = json_decode($validated['product_ids'], true);
             if (empty($productIds)) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
@@ -91,7 +94,10 @@ class EditorController extends Controller
         ]);
 
         $productIds = null;
-        if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
+        if ($validated['selection_mode'] === 'manual') {
+            if (empty($validated['product_ids'])) {
+                return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
             $productIds = json_decode($validated['product_ids'], true);
             if (empty($productIds)) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
@@ -136,7 +142,10 @@ class EditorController extends Controller
         $tags = $validated['tags'] ?? [];
 
         $productIds = null;
-        if ($validated['selection_mode'] === 'manual' && !empty($validated['product_ids'])) {
+        if ($validated['selection_mode'] === 'manual') {
+            if (empty($validated['product_ids'])) {
+                return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
             $productIds = json_decode($validated['product_ids'], true);
             if (empty($productIds)) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
