@@ -83,7 +83,7 @@
 
                     <s-table-cell style="white-space:nowrap;">
                         @if($task->isScheduled())
-                            ⏰ {{ $task->scheduled_at->format('M d, h:i A') }}
+                            ⏰ {{ $task->scheduledAtForShop() }}
                         @else
                             {{ $task->created_at->diffForHumans() }}
                         @endif

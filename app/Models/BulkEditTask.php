@@ -75,6 +75,15 @@ class BulkEditTask extends Model
         return $this->scheduled_at !== null && $this->status === self::STATUS_PENDING;
     }
 
+    public function scheduledAtForShop(): ?string
+    {
+        if (!$this->scheduled_at) return null;
+
+        $tz = $this->user?->timezone ?? 'UTC';
+
+        return $this->scheduled_at->setTimezone($tz)->format('M d, h:i A');
+    }
+
     public function isAllProducts(): bool
     {
         return empty($this->product_ids);

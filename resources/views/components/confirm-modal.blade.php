@@ -41,11 +41,15 @@ window.apexConfirmSubmit = function(modalId, formId) {
     f.querySelectorAll('input[type=hidden]').forEach(function(el) {
         if (el.name) body.append(el.name, el.value);
     });
-    f.querySelectorAll('s-select, s-number-field, s-checkbox, s-text-field').forEach(function(el) {
+    f.querySelectorAll('s-select, s-number-field, s-checkbox, s-text-field, s-date-field').forEach(function(el) {
         var name = el.getAttribute('name');
         if (!name) return;
         var val = el.tagName.toLowerCase() === 's-checkbox' ? (el.checked ? (el.getAttribute('value') || '1') : '0') : (el.value || '');
         body.set(name, val);
+    });
+    // Also capture native inputs (date, time) not inside Polaris components
+    f.querySelectorAll('input[type=date], input[type=time]').forEach(function(el) {
+        if (el.name && el.value) body.set(el.name, el.value);
     });
 
     fetch(f.getAttribute('action'), {

@@ -7,10 +7,23 @@ use App\Jobs\ProcessPriceJob;
 use App\Jobs\ProcessInventoryJob;
 use App\Jobs\ProcessTagsJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class EditorController extends Controller
 {
+    /**
+     * Convert user's local date + time to UTC.
+     */
+    private function scheduleToUtc(?string $date, ?string $time): ?string
+    {
+        if (!$date || !$time) return null;
+
+        $shop = Auth::user();
+        $tz = $shop->timezone ?? 'UTC';
+
+        return Carbon::parse("{$date} {$time}", $tz)->setTimezone('UTC')->toDateTimeString();
+    }
     /**
      * Show the price editor form.
      */
@@ -64,8 +77,8 @@ class EditorController extends Controller
                 'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
-            'scheduled_at' => $request->boolean('is_scheduled') && $request->input('schedule_at')
-                ? $request->input('schedule_at')
+            'scheduled_at' => $request->boolean('is_scheduled')
+                ? $this->scheduleToUtc($request->input('schedule_date'), $request->input('schedule_time'))
                 : null,
         ]);
 
@@ -74,7 +87,7 @@ class EditorController extends Controller
         }
 
         $msg = $task->scheduled_at
-            ? 'Price update scheduled for ' . $task->scheduled_at->format('M d, Y h:i A') . '!'
+            ? 'Price update scheduled for ' . $task->scheduledAtForShop() . '!'
             : 'Price update task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
@@ -136,8 +149,8 @@ class EditorController extends Controller
                 'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
-            'scheduled_at' => $request->boolean('is_scheduled') && $request->input('schedule_at')
-                ? $request->input('schedule_at')
+            'scheduled_at' => $request->boolean('is_scheduled')
+                ? $this->scheduleToUtc($request->input('schedule_date'), $request->input('schedule_time'))
                 : null,
         ]);
 
@@ -146,7 +159,7 @@ class EditorController extends Controller
         }
 
         $msg = $task->scheduled_at
-            ? 'Inventory update scheduled for ' . $task->scheduled_at->format('M d, Y h:i A') . '!'
+            ? 'Inventory update scheduled for ' . $task->scheduledAtForShop() . '!'
             : 'Inventory task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
@@ -194,8 +207,8 @@ class EditorController extends Controller
                 'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
-            'scheduled_at' => $request->boolean('is_scheduled') && $request->input('schedule_at')
-                ? $request->input('schedule_at')
+            'scheduled_at' => $request->boolean('is_scheduled')
+                ? $this->scheduleToUtc($request->input('schedule_date'), $request->input('schedule_time'))
                 : null,
         ]);
 
@@ -204,7 +217,7 @@ class EditorController extends Controller
         }
 
         $msg = $task->scheduled_at
-            ? 'Tags update scheduled for ' . $task->scheduled_at->format('M d, Y h:i A') . '!'
+            ? 'Tags update scheduled for ' . $task->scheduledAtForShop() . '!'
             : 'Tags task created!';
 
         return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
