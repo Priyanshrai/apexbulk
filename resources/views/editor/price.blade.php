@@ -107,11 +107,14 @@
         const previewEl = document.getElementById(modalId + '-preview');
         const moreEl = document.getElementById(modalId + '-more');
 
-        // Show loading
+        // Show spinner in modal immediately
         summaryEl.style.display = 'block';
-        summaryEl.textContent = '⏳ Fetching preview...';
+        summaryEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><s-spinner size="small"></s-spinner> Fetching preview...</div>';
         previewEl.style.display = 'none';
         moreEl.style.display = 'none';
+
+        // Open modal NOW so user sees spinner right away
+        shopify.modal.show(modalId);
 
         try {
             const resp = await fetch('/editor/price/preview?' + new URLSearchParams(window.location.search).toString(), {
@@ -152,12 +155,10 @@
                 moreEl.style.display = 'none';
             }
         } catch (err) {
-            summaryEl.textContent = '⚠️ Could not load preview.';
+            summaryEl.innerHTML = '⚠️ Could not load preview.';
             previewEl.innerHTML = '';
             moreEl.style.display = 'none';
         }
-
-        shopify.modal.show(modalId);
     }
 
     function buildProductBlock(product, type) {

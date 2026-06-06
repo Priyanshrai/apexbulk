@@ -127,9 +127,11 @@
         const moreEl = document.getElementById(modalId + '-more');
 
         summaryEl.style.display = 'block';
-        summaryEl.textContent = '⏳ Fetching preview...';
+        summaryEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><s-spinner size="small"></s-spinner> Fetching preview...</div>';
         previewEl.style.display = 'none';
         moreEl.style.display = 'none';
+
+        shopify.modal.show(modalId);
 
         try {
             const resp = await fetch('/editor/tags/preview?' + new URLSearchParams(window.location.search).toString(), {
@@ -200,12 +202,10 @@
                 moreEl.style.display = 'none';
             }
         } catch (err) {
-            summaryEl.textContent = '⚠️ Could not load preview.';
+            summaryEl.innerHTML = '⚠️ Could not load preview.';
             previewEl.innerHTML = '';
             moreEl.style.display = 'none';
         }
-
-        shopify.modal.show(modalId);
     }
 
     function escapeHtml(str) {
