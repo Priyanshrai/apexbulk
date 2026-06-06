@@ -32,7 +32,7 @@ class ShopifyGraphQL
                                 title
                                 variants(first: 100) {
                                     edges {
-                                        node { id price }
+                                        node { id title price }
                                         cursor
                                     }
                                     pageInfo { hasNextPage }
@@ -171,7 +171,7 @@ class ShopifyGraphQL
                     product(id: "{$productId}") {
                         variants(first: 100, after: "{$variantCursor}") {
                             edges {
-                                node { id price }
+                                node { id title price }
                                 cursor
                             }
                             pageInfo { hasNextPage }
@@ -240,6 +240,7 @@ class ShopifyGraphQL
                                     edges {
                                         node {
                                             id
+                                            title
                                             inventoryItem {
                                                 id
                                                 tracked

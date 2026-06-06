@@ -23,10 +23,13 @@ Route::post('/api/graphql', function (Request $request) {
 Route::prefix('editor')->middleware(['verify.shopify'])->group(function () {
     Route::get('/price', [EditorController::class, 'price']);
     Route::post('/price', [EditorController::class, 'submitPrice']);
+    Route::post('/price/preview', [EditorController::class, 'previewPrice']);
     Route::get('/inventory', [EditorController::class, 'inventory']);
     Route::post('/inventory', [EditorController::class, 'submitInventory']);
+    Route::post('/inventory/preview', [EditorController::class, 'previewInventory']);
     Route::get('/tags', [EditorController::class, 'tags']);
     Route::post('/tags', [EditorController::class, 'submitTags']);
+    Route::post('/tags/preview', [EditorController::class, 'previewTags']);
 });
 
 // Task History

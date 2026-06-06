@@ -1,6 +1,19 @@
 <ui-modal id="{{ $modalId }}">
     <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
         <s-text tone="subdued">{{ $message }}</s-text>
+
+        {{-- Preview summary --}}
+        <div id="{{ $modalId }}-summary" style="display:none;padding:10px 14px;background:var(--p-surface-subdued);border-radius:8px;font-size:13px;font-weight:500;">
+        </div>
+
+        {{-- Preview rows (before/after) --}}
+        <div id="{{ $modalId }}-preview" style="display:none;flex-direction:column;gap:8px;">
+        </div>
+
+        {{-- More products indicator --}}
+        <div id="{{ $modalId }}-more" style="display:none;font-size:12px;color:var(--p-color-text-subdued);text-align:center;">
+        </div>
+
         <s-banner tone="warning">This action cannot be undone automatically. A revert log will be saved.</s-banner>
         <s-text tone="subdued">Please confirm to continue.</s-text>
     </div>

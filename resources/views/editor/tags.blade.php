@@ -74,11 +74,10 @@
     function buildTagsArray() {
         const action = document.querySelector('[name="action"]').value;
         const container = document.getElementById('tags-hidden-inputs');
-        // Clear old inputs
         container.innerHTML = '';
 
         if (action === 'clear') {
-            return;
+            return [];
         }
 
         const input = document.querySelector('[name="tags_input"]');
@@ -90,22 +89,129 @@
             el.value = tag;
             container.appendChild(el);
         });
+        return tags;
     }
 
     function openConfirmModal(modalId, formId) {
         const action = document.querySelector('[name="action"]');
-        if (action && action.value === 'clear') {
-            shopify.modal.show(modalId);
-            return;
-        }
-        const tagsInput = document.querySelector('[name="tags_input"]');
-        if (!tagsInput || tagsInput.value.trim() === '') {
-            alert('Please enter tags or select "Clear all tags" before executing.');
-            if (tagsInput && tagsInput.focus) tagsInput.focus();
-            return;
+        if (action && action.value !== 'clear') {
+            const tagsInput = document.querySelector('[name="tags_input"]');
+            if (!tagsInput || tagsInput.value.trim() === '') {
+                alert('Please enter tags or select "Clear all tags" before executing.');
+                if (tagsInput && tagsInput.focus) tagsInput.focus();
+                return;
+            }
         }
         buildTagsArray();
+        fetchTagsPreview(modalId, formId);
+    }
+
+    async function fetchTagsPreview(modalId, formId) {
+        const form = document.getElementById(formId);
+        const formData = new FormData(form);
+
+        const payload = {};
+        const tagArray = [];
+        for (const [key, val] of formData.entries()) {
+            if (key === '_token') continue;
+            if (key === 'tags[]') {
+                tagArray.push(val);
+                continue;
+            }
+            payload[key] = val;
+        }
+        payload.tags = tagArray;
+
+        const summaryEl = document.getElementById(modalId + '-summary');
+        const previewEl = document.getElementById(modalId + '-preview');
+        const moreEl = document.getElementById(modalId + '-more');
+
+        summaryEl.style.display = 'block';
+        summaryEl.textContent = '⏳ Fetching preview...';
+        previewEl.style.display = 'none';
+        moreEl.style.display = 'none';
+
+        try {
+            const resp = await fetch('/editor/tags/preview?' + new URLSearchParams(window.location.search).toString(), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await resp.json();
+
+            summaryEl.style.display = 'block';
+            summaryEl.textContent = data.has_changes
+                ? '🏷️ Action: ' + data.summary
+                : '⚠️ ' + data.summary + ' (no changes detected)';
+
+            previewEl.style.display = 'flex';
+            previewEl.innerHTML = '';
+
+            if (!data.preview_products || data.preview_products.length === 0) {
+                previewEl.innerHTML = '<s-text tone="subdued" style="text-align:center;padding:12px;">No tag changes will be made with these settings.</s-text>';
+            } else {
+                data.preview_products.forEach(function(product) {
+                    var rowEl = document.createElement('div');
+                    rowEl.style.cssText = 'background:var(--p-surface);border-radius:6px;padding:8px 12px;';
+
+                    // Old tags HTML
+                    var oldTagsHtml = '';
+                    if (product.old_tags.length === 0) {
+                        oldTagsHtml = '<span style="font-size:11px;color:var(--p-color-text-subdued);font-style:italic;">(none)</span>';
+                    } else {
+                        product.old_tags.forEach(function(tag) {
+                            var isRemoved = product.removed && product.removed.indexOf(tag) !== -1;
+                            var style = isRemoved
+                                ? 'text-decoration:line-through;color:#d82c0d;background:#fbeae5;'
+                                : 'background:var(--p-surface-subdued);color:var(--p-color-text-subdued);';
+                            oldTagsHtml += '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;' + style + 'margin:1px 2px;">' + escapeHtml(tag) + '</span>';
+                        });
+                    }
+
+                    // New tags HTML
+                    var newTagsHtml = '';
+                    if (product.new_tags.length === 0) {
+                        newTagsHtml = '<span style="font-size:11px;color:var(--p-color-text-subdued);font-style:italic;">(none)</span>';
+                    } else {
+                        product.new_tags.forEach(function(tag) {
+                            var added = product.added || [];
+                            var isNew = added.indexOf(tag) !== -1;
+                            var color = isNew ? 'color:#1a7f4b;background:#e6f4ec;' : 'background:var(--p-surface-subdued);color:var(--p-color-text-subdued);';
+                            newTagsHtml += '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;' + color + 'margin:1px 2px;">' + escapeHtml(tag) + '</span>';
+                        });
+                    }
+
+                    rowEl.innerHTML =
+                        '<div style="font-weight:500;font-size:13px;margin-bottom:6px;">🏷️ ' + escapeHtml(product.product_title) + '</div>' +
+                        '<div style="line-height:1.8;">' + oldTagsHtml + ' <span style="color:var(--p-color-text-subdued);font-size:11px;">→</span> ' + newTagsHtml + '</div>';
+                    previewEl.appendChild(rowEl);
+                });
+            }
+
+            if (data.more_products > 0) {
+                moreEl.style.display = 'block';
+                moreEl.textContent = '📊 ' + data.shown_products + ' of ' + (data.shown_products + data.more_products) + ' products shown. ' + data.more_products + ' more will also be updated.';
+            } else {
+                moreEl.style.display = 'none';
+            }
+        } catch (err) {
+            summaryEl.textContent = '⚠️ Could not load preview.';
+            previewEl.innerHTML = '';
+            moreEl.style.display = 'none';
+        }
+
         shopify.modal.show(modalId);
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     document.getElementById('tag-form').addEventListener('submit', function(e) {
