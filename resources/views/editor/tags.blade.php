@@ -8,6 +8,14 @@
 
     @include('components.nav-menu')
 
+    @if($errors->any())
+    <s-banner tone="critical" style="margin-bottom:16px;">
+        @foreach($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    </s-banner>
+    @endif
+
     @include('components.confirm-modal', [
         'modalId' => 'confirm-tag-modal',
         'formId' => 'tag-form',
