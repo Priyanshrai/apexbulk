@@ -2,7 +2,10 @@
 
 @section('content')
 
-    <ui-title-bar title="ApexBulk > Task History"></ui-title-bar>
+    @php $homeUrl = URL::tokenRoute('home', ['host' => request('host')]) @endphp
+    <ui-title-bar title="ApexBulk > Task History">
+        <button onclick="location.href='{{ $homeUrl }}'">← Dashboard</button>
+    </ui-title-bar>
 
     @include('components.nav-menu')
 
@@ -10,7 +13,6 @@
 
         @if($tasks->isEmpty())
             <s-banner tone="info">No tasks yet. Go to the dashboard and start editing!</s-banner>
-            <s-button onclick="location.href='{{ url('/') }}?{{ http_build_query(request()->query()) }}'">← Back to Dashboard</s-button>
         @else
             <s-table>
                 <s-table-header-row>
@@ -50,7 +52,7 @@
                             @if(count($links) <= 3)
                                 @foreach($links as $link)
                                     <a href="{{ $link['url'] }}" target="_blank" rel="noopener" style="display:block;color:var(--p-color-text-primary);text-decoration:none;font-size:13px;">
-                                        🛍️ Product #{{ $link['id'] }}
+                                        🛍️ {{ $link['title'] ?? 'Product #'.$link['id'] }}
                                     </a>
                                 @endforeach
                             @else
@@ -60,7 +62,7 @@
                                     </summary>
                                     @foreach($links as $link)
                                         <a href="{{ $link['url'] }}" target="_blank" rel="noopener" style="display:block;color:var(--p-color-text-primary);text-decoration:none;font-size:13px;padding-left:8px;">
-                                            🛍️ #{{ $link['id'] }}
+                                            🛍️ {{ $link['title'] ?? '#'.$link['id'] }}
                                         </a>
                                     @endforeach
                                     @if($task->productCount() > 5)
@@ -83,6 +85,10 @@
                     <s-table-cell>
                         @if($task->status === 'completed')
                             <s-button size="small" onclick="document.getElementById('revert-task').value='{{ $task->id }}';shopify.modal.show('revert-modal')">↩ Revert</s-button>
+                            <form id="revert-form-{{ $task->id }}" method="POST" action="{{ route('tasks.revert', ['task' => $task->id]) }}" style="display:none;">
+                                @csrf
+                                @sessionToken
+                            </form>
                         @elseif($task->status === 'reverting')
                             <s-spinner size="small"></s-spinner>
                         @elseif($task->status === 'reverted')
@@ -96,17 +102,14 @@
 
             @if($tasks->hasPages())
             <div style="display:flex;align-items:center;justify-content:center;gap:12px;padding-top:24px;">
-                @php
-                    $shopParams = http_build_query(request()->except('page'));
-                @endphp
                 @if($tasks->onFirstPage())
                     <s-button disabled>← Previous</s-button>
                 @else
-                    <s-button onclick="location.href='{{ $tasks->previousPageUrl() }}&{{ $shopParams }}'">← Previous</s-button>
+                    <s-button onclick="location.href='{{ $tasks->previousPageUrl() }}&host={{ request('host') }}&shop={{ request('shop') }}'">← Previous</s-button>
                 @endif
                 <span style="color:var(--p-color-text-secondary);font-size:14px;">Page {{ $tasks->currentPage() }} of {{ $tasks->lastPage() }}</span>
                 @if($tasks->hasMorePages())
-                    <s-button onclick="location.href='{{ $tasks->nextPageUrl() }}&{{ $shopParams }}'">Next →</s-button>
+                    <s-button onclick="location.href='{{ $tasks->nextPageUrl() }}&host={{ request('host') }}&shop={{ request('shop') }}'">Next →</s-button>
                 @else
                     <s-button disabled>Next →</s-button>
                 @endif
@@ -123,7 +126,7 @@
         </div>
         <ui-title-bar title="Confirm Revert">
             <button onclick="shopify.modal.hide('revert-modal')">Cancel</button>
-            <button variant="primary" onclick="shopify.modal.hide('revert-modal').then(()=>{var tid=document.getElementById('revert-task').value;var f=document.createElement('form');f.method='POST';f.action='/tasks/'+tid+'/revert'+location.search;var c=document.createElement('input');c.type='hidden';c.name='_token';c.value='{{ csrf_token() }}';f.appendChild(c);document.body.appendChild(f);f.submit();})">Confirm Revert</button>
+            <button variant="primary" onclick="shopify.modal.hide('revert-modal').then(()=>document.getElementById('revert-form-'+document.getElementById('revert-task').value).submit())">Confirm Revert</button>
         </ui-title-bar>
     </ui-modal>
     <input type="hidden" id="revert-task">

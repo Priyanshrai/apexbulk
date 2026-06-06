@@ -36,6 +36,7 @@ class EditorController extends Controller
 
         // Decode JSON product IDs, or null for "all products"
         $productIds = null;
+        $productTitles = [];
         if ($validated['selection_mode'] === 'manual') {
             if (empty($validated['product_ids'])) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
@@ -43,6 +44,9 @@ class EditorController extends Controller
             $productIds = json_decode($validated['product_ids'], true);
             if (empty($productIds)) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
+            if (!empty($request->input('product_titles'))) {
+                $productTitles = json_decode($request->input('product_titles'), true) ?? [];
             }
         }
 
@@ -57,13 +61,14 @@ class EditorController extends Controller
                 'rounding_value' => $validated['rounding_value'] ?? null,
                 'selection_mode' => $validated['selection_mode'],
                 'apply_variants' => (bool) ($validated['apply_variants'] ?? false),
+                'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
         ]);
 
         ProcessPriceJob::dispatch($task->id);
 
-        return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
+        return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
             ->with('success', 'Price update task created!');
     }
 
@@ -94,6 +99,7 @@ class EditorController extends Controller
         ]);
 
         $productIds = null;
+        $productTitles = [];
         if ($validated['selection_mode'] === 'manual') {
             if (empty($validated['product_ids'])) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
@@ -101,6 +107,9 @@ class EditorController extends Controller
             $productIds = json_decode($validated['product_ids'], true);
             if (empty($productIds)) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
+            if (!empty($request->input('product_titles'))) {
+                $productTitles = json_decode($request->input('product_titles'), true) ?? [];
             }
         }
 
@@ -115,13 +124,14 @@ class EditorController extends Controller
                 'track_inventory' => (bool) ($validated['track_inventory'] ?? false),
                 'continue_selling' => (bool) ($validated['continue_selling'] ?? false),
                 'apply_variants' => (bool) ($validated['apply_variants'] ?? true),
+                'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
         ]);
 
         ProcessInventoryJob::dispatch($task->id);
 
-        return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
+        return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
             ->with('success', 'Inventory task created!');
     }
 
@@ -142,6 +152,7 @@ class EditorController extends Controller
         $tags = $validated['tags'] ?? [];
 
         $productIds = null;
+        $productTitles = [];
         if ($validated['selection_mode'] === 'manual') {
             if (empty($validated['product_ids'])) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
@@ -149,6 +160,9 @@ class EditorController extends Controller
             $productIds = json_decode($validated['product_ids'], true);
             if (empty($productIds)) {
                 return back()->withErrors(['product_ids' => 'Please select at least one product.']);
+            }
+            if (!empty($request->input('product_titles'))) {
+                $productTitles = json_decode($request->input('product_titles'), true) ?? [];
             }
         }
 
@@ -159,13 +173,14 @@ class EditorController extends Controller
             'parameters' => [
                 'action' => $validated['action'],
                 'tags' => $tags,
+                'product_titles' => $productTitles,
             ],
             'product_ids' => $productIds,
         ]);
 
         ProcessTagsJob::dispatch($task->id);
 
-        return redirect(url('/tasks') . '?' . http_build_query(request()->query()))
+        return \Redirect::to(\URL::tokenRoute('tasks.index', ['host' => $request->get('host')]))
             ->with('success', 'Tags task created!');
     }
 

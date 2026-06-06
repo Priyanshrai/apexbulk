@@ -26,7 +26,7 @@ class TaskController extends Controller
         $newTask->status = BulkEditTask::STATUS_PENDING;
         $newTask->save();
 
-        return redirect('/editor/' . $task->task_type)
+        return \Redirect::to(\URL::tokenRoute('editor.' . $task->task_type, ['host' => request('host')]))
             ->with('success', 'Task copied! Parameters pre-filled.');
     }
 

@@ -2,6 +2,14 @@
 
 @section('content')
 
+    @php
+        $host = request('host');
+        $priceUrl = URL::tokenRoute('editor.price', compact('host'));
+        $inventoryUrl = URL::tokenRoute('editor.inventory', compact('host'));
+        $tagsUrl = URL::tokenRoute('editor.tags', compact('host'));
+        $tasksUrl = URL::tokenRoute('tasks.index', compact('host'));
+    @endphp
+
     {{-- Title Bar --}}
     <ui-title-bar title="ApexBulk"></ui-title-bar>
 
@@ -22,17 +30,17 @@
             <s-grid>
                 <s-section heading="💰 Price Editor">
                     <s-paragraph>Set specific prices, increase/decrease by amount or percentage. Apply rounding rules like .99 endings.</s-paragraph>
-                    <s-button variant="primary" full-width onclick="location.href='{{ url('/editor/price') }}?{{ http_build_query(request()->query()) }}'">Open Price Editor</s-button>
+                    <s-button variant="primary" full-width onclick="location.href='{{ $priceUrl }}'">Open Price Editor</s-button>
                 </s-section>
 
                 <s-section heading="📦 Inventory Editor">
                     <s-paragraph>Set quantities, enable/disable tracking, manage stock across all your products and variants.</s-paragraph>
-                    <s-button variant="primary" full-width onclick="location.href='{{ url('/editor/inventory') }}?{{ http_build_query(request()->query()) }}'">Open Inventory Editor</s-button>
+                    <s-button variant="primary" full-width onclick="location.href='{{ $inventoryUrl }}'">Open Inventory Editor</s-button>
                 </s-section>
 
                 <s-section heading="🏷️ Tags Editor">
                     <s-paragraph>Add, remove, or replace tags across hundreds of products in a single operation.</s-paragraph>
-                    <s-button variant="primary" full-width onclick="location.href='{{ url('/editor/tags') }}?{{ http_build_query(request()->query()) }}'">Open Tags Editor</s-button>
+                    <s-button variant="primary" full-width onclick="location.href='{{ $tagsUrl }}'">Open Tags Editor</s-button>
                 </s-section>
             </s-grid>
         </s-section>
@@ -71,7 +79,7 @@
             @endif
 
             <s-stack distribution="trailing">
-                <s-button onclick="location.href='{{ url('/tasks') }}?{{ http_build_query(request()->query()) }}'">View All Tasks →</s-button>
+                <s-button onclick="location.href='{{ $tasksUrl }}'">View All Tasks →</s-button>
             </s-stack>
         </s-section>
 

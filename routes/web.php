@@ -17,24 +17,24 @@ Route::post('/api/graphql', function (Request $request) {
     $query = $request->input('query');
     $response = $shop->api()->graph($query);
     return response()->json($response);
-})->middleware(['verify.shopify']);
+})->middleware(['verify.shopify'])->name('api.graphql');
 
 // Editor Routes
 Route::prefix('editor')->middleware(['verify.shopify'])->group(function () {
-    Route::get('/price', [EditorController::class, 'price']);
-    Route::post('/price', [EditorController::class, 'submitPrice']);
-    Route::post('/price/preview', [EditorController::class, 'previewPrice']);
-    Route::get('/inventory', [EditorController::class, 'inventory']);
-    Route::post('/inventory', [EditorController::class, 'submitInventory']);
-    Route::post('/inventory/preview', [EditorController::class, 'previewInventory']);
-    Route::get('/tags', [EditorController::class, 'tags']);
-    Route::post('/tags', [EditorController::class, 'submitTags']);
-    Route::post('/tags/preview', [EditorController::class, 'previewTags']);
+    Route::get('/price', [EditorController::class, 'price'])->name('editor.price');
+    Route::post('/price', [EditorController::class, 'submitPrice'])->name('editor.price.submit');
+    Route::post('/price/preview', [EditorController::class, 'previewPrice'])->name('editor.price.preview');
+    Route::get('/inventory', [EditorController::class, 'inventory'])->name('editor.inventory');
+    Route::post('/inventory', [EditorController::class, 'submitInventory'])->name('editor.inventory.submit');
+    Route::post('/inventory/preview', [EditorController::class, 'previewInventory'])->name('editor.inventory.preview');
+    Route::get('/tags', [EditorController::class, 'tags'])->name('editor.tags');
+    Route::post('/tags', [EditorController::class, 'submitTags'])->name('editor.tags.submit');
+    Route::post('/tags/preview', [EditorController::class, 'previewTags'])->name('editor.tags.preview');
 });
 
 // Task History
 Route::middleware(['verify.shopify'])->group(function () {
-    Route::get('/tasks', [TaskController::class, 'index']);
-    Route::post('/tasks/{task}/copy', [TaskController::class, 'copy']);
-    Route::post('/tasks/{task}/revert', [TaskController::class, 'revert']);
+    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+    Route::post('/tasks/{task}/copy', [TaskController::class, 'copy'])->name('tasks.copy');
+    Route::post('/tasks/{task}/revert', [TaskController::class, 'revert'])->name('tasks.revert');
 });

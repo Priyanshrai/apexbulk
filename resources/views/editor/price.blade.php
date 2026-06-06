@@ -3,6 +3,7 @@
 @section('content')
 
     <ui-title-bar title="ApexBulk > Price Editor">
+        <button onclick="location.href='{{ URL::tokenRoute('home', ['host' => request('host')]) }}'">← Dashboard</button>
         <button variant="primary" onclick="openConfirmModal('confirm-price-modal', 'price-form')">⚡ Execute</button>
     </ui-title-bar>
 
@@ -25,8 +26,9 @@
 
     <s-page heading="Bulk Price Editor">
 
-        <form id="price-form" method="POST" action="{{ url('/editor/price') }}?{{ http_build_query(request()->query()) }}" style="display:flex;flex-direction:column;gap:24px;">
+        <form id="price-form" method="POST" action="{{ route('editor.price.submit') }}" style="display:flex;flex-direction:column;gap:24px;">
             @csrf
+            @sessionToken
             <input type="hidden" name="product_ids" id="product-ids">
 
             <s-section heading="1. Select Products">
@@ -83,6 +85,7 @@
 
 @section('scripts')
     @parent
+    @php $previewUrl = route('editor.price.preview') @endphp
 <script>
     let selectedProductIds = [];
 
@@ -133,11 +136,11 @@
         shopify.modal.show(modalId);
 
         try {
-            const resp = await fetch('/editor/price/preview?' + new URLSearchParams(window.location.search).toString(), {
+            const resp = await fetch('{{ $previewUrl }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    'Authorization': 'Bearer ' + window.sessionToken,
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify(payload),
@@ -269,8 +272,18 @@
         shopify.resourcePicker({ type: 'product', multiple: true }).then(result => {
             if (result) {
                 selectedProductIds = result.map(p => p.id.replace('gid://shopify/Product/', ''));
+                var titles = {};
+                result.forEach(p => { titles[p.id.replace('gid://shopify/Product/', '')] = p.title; });
                 document.getElementById('selected-count').textContent = selectedProductIds.length + ' product(s) selected';
                 document.getElementById('product-ids').value = JSON.stringify(selectedProductIds);
+                if (!document.getElementById('product-titles')) {
+                    var pt = document.createElement('input');
+                    pt.type = 'hidden';
+                    pt.name = 'product_titles';
+                    pt.id = 'product-titles';
+                    document.getElementById('product-ids').parentNode.appendChild(pt);
+                }
+                document.getElementById('product-titles').value = JSON.stringify(titles);
             }
         });
     }

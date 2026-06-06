@@ -145,11 +145,13 @@ class BulkEditTask extends Model
         }
 
         $domain = str_replace('.myshopify.com', '', $this->user->name);
+        $titles = $this->parameters['product_titles'] ?? [];
         $links = [];
 
         foreach (array_slice($this->product_ids, 0, 5) as $id) {
             $links[] = [
                 'id' => $id,
+                'title' => $titles[$id] ?? null,
                 'url' => "https://admin.shopify.com/store/{$domain}/products/{$id}",
             ];
         }
