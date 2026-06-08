@@ -9,6 +9,8 @@
 
     @include('components.nav-menu')
 
+    @include('components.usage-banner')
+
     <s-page heading="Task History" style="display:flex;flex-direction:column;gap:24px;">
 
         @if($tasks->isEmpty())

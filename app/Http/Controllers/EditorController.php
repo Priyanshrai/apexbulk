@@ -6,12 +6,34 @@ use App\Models\BulkEditTask;
 use App\Jobs\ProcessPriceJob;
 use App\Jobs\ProcessInventoryJob;
 use App\Jobs\ProcessTagsJob;
+use App\Services\UsageTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class EditorController extends Controller
 {
+    public function __construct(private UsageTracker $usage) {}
+
+    /**
+     * Check if free shop is over limit — return error message or null.
+     */
+    private function checkUsageLimit(): ?string
+    {
+        $shop = Auth::user();
+
+        // Pro plan or freemium — no limit
+        if ($shop->plan || $shop->isFreemium() || $shop->isGrandfathered()) {
+            return null;
+        }
+
+        if ($this->usage->isOverLimit($shop->getId()->toNative())) {
+            return "You've reached the free limit of " . UsageTracker::FREE_LIMIT . " products this month. Upgrade to Pro for unlimited edits.";
+        }
+
+        return null;
+    }
+
     /**
      * Convert user's local date + time to UTC.
      */
@@ -36,6 +58,10 @@ class EditorController extends Controller
      */
     public function submitPrice(Request $request)
     {
+        if ($limitMsg = $this->checkUsageLimit()) {
+            return back()->with('error', $limitMsg);
+        }
+
         $validated = $request->validate([
             'product_ids' => 'nullable|string',
             'selection_mode' => 'required|in:all,manual',
@@ -85,6 +111,8 @@ class EditorController extends Controller
             ProcessPriceJob::dispatch($task->id);
         }
 
+        $this->usage->clearCache(Auth::id());
+
         $msg = $task->scheduled_at
             ? 'Price update scheduled!'
             : 'Price update task created!';
@@ -108,6 +136,10 @@ class EditorController extends Controller
 
     public function submitInventory(Request $request)
     {
+        if ($limitMsg = $this->checkUsageLimit()) {
+            return back()->with('error', $limitMsg);
+        }
+
         $validated = $request->validate([
             'product_ids' => 'nullable|string',
             'selection_mode' => 'required|in:all,manual',
@@ -157,6 +189,8 @@ class EditorController extends Controller
             ProcessInventoryJob::dispatch($task->id);
         }
 
+        $this->usage->clearCache(Auth::id());
+
         $msg = $task->scheduled_at
             ? 'Inventory update scheduled!'
             : 'Inventory task created!';
@@ -172,6 +206,10 @@ class EditorController extends Controller
 
     public function submitTags(Request $request)
     {
+        if ($limitMsg = $this->checkUsageLimit()) {
+            return back()->with('error', $limitMsg);
+        }
+
         $validated = $request->validate([
             'product_ids' => 'nullable|string',
             'selection_mode' => 'required|in:all,manual',
@@ -214,6 +252,8 @@ class EditorController extends Controller
         if (!$task->scheduled_at) {
             ProcessTagsJob::dispatch($task->id);
         }
+
+        $this->usage->clearCache(Auth::id());
 
         $msg = $task->scheduled_at
             ? 'Tags update scheduled!'

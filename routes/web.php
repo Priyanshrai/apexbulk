@@ -38,3 +38,10 @@ Route::middleware(['verify.shopify'])->group(function () {
     Route::post('/tasks/{task}/copy', [TaskController::class, 'copy'])->name('tasks.copy');
     Route::post('/tasks/{task}/revert', [TaskController::class, 'revert'])->name('tasks.revert');
 });
+
+// Billing plans page
+Route::middleware(['verify.shopify'])->group(function () {
+    Route::get('/billing/plans', function () {
+        return view('billing.plans');
+    })->name('billing.plans');
+});

@@ -9,6 +9,8 @@
 
     @include('components.nav-menu')
 
+    @include('components.usage-banner')
+
     @if($errors->any())
     <s-banner tone="critical" style="margin-bottom:16px;">
         @foreach($errors->all() as $error)

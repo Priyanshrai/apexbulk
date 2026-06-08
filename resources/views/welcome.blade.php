@@ -15,6 +15,8 @@
 
     @include('components.nav-menu')
 
+    @include('components.usage-banner')
+
     {{-- Main Dashboard --}}
     <s-page heading="Bulk Product Manager" style="display:flex;flex-direction:column;gap:24px;">
 
