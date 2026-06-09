@@ -6,6 +6,11 @@ use Osiset\ShopifyApp\Util;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\TaskController;
 
+// Privacy Policy (public, no auth required)
+Route::get('/privacy', function () {
+    return response()->file(public_path('privacy-policy.html'));
+});
+
 // Home — Dashboard
 Route::get('/', function () {
     return view('welcome');
