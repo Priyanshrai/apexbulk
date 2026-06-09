@@ -60,7 +60,7 @@ Route::middleware(['verify.shopify'])->group(function () {
 | names (shop/redact, customers/redact, etc.), so we define explicit routes.
 | Using /webhook/gdpr/ prefix to avoid conflict with package's /webhook/{type} route.
 */
-Route::prefix('webhook/gdpr')->middleware(['auth.webhook'])->group(function () {
+Route::prefix('webhook/gdpr')->middleware(['auth.webhook.gdpr'])->group(function () {
     Route::post('/shop-redact', function (Request $request) {
         \App\Jobs\GdprShopRedactJob::dispatch(
             $request->header('x-shopify-shop-domain'),
@@ -105,4 +105,4 @@ Route::post('/webhooks', function (Request $request) {
 
     $job::dispatch($domain, $data);
     return response('', 201);
-})->middleware('auth.webhook');
+})->middleware('auth.webhook.gdpr');
