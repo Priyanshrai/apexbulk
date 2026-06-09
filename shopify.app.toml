@@ -9,7 +9,7 @@ embedded = true
 api_version = "2026-04"
 
   [[webhooks.subscriptions]]
-  uri = "/webhooks"
+  uri = "https://app.pixiestore.in/webhooks"
   compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
 [access_scopes]
