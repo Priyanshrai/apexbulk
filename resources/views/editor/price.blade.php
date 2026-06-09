@@ -33,6 +33,7 @@
         <form id="price-form" method="POST" action="{{ route('editor.price.submit') }}" style="display:flex;flex-direction:column;gap:24px;">
             @csrf
             @sessionToken
+            <input type="hidden" name="host" value="{{ request('host') }}">
             <input type="hidden" name="product_ids" id="product-ids">
 
             {{-- 1. Select Products --}}
