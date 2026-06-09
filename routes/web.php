@@ -59,6 +59,27 @@ Route::middleware(['verify.shopify'])->group(function () {
 | Kyon147 package /webhook/{type} route cannot handle slashes in topic
 | names (shop/redact, customers/redact, etc.), so we define explicit routes.
 */
+// Single GDPR compliance endpoint for TOML registration
+Route::post('/webhooks', function (Request $request) {
+    $topic = $request->header('X-Shopify-Topic', '');
+    $domain = $request->header('x-shopify-shop-domain');
+    $data = json_decode($request->getContent());
+
+    $job = match ($topic) {
+        'shop/redact' => \App\Jobs\GdprShopRedactJob::class,
+        'customers/redact' => \App\Jobs\GdprCustomerRedactJob::class,
+        'customers/data_request' => \App\Jobs\GdprCustomerDataRequestJob::class,
+        default => null,
+    };
+
+    if (!$job) {
+        return response('Unknown topic', 400);
+    }
+
+    $job::dispatch($domain, $data);
+    return response('', 201);
+})->middleware('auth.webhook');
+
 Route::prefix('webhook/gdpr')->middleware(['auth.webhook'])->group(function () {
     Route::post('/shop-redact', function (Request $request) {
         \App\Jobs\GdprShopRedactJob::dispatch(
