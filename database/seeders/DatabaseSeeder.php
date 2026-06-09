@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
                 'terms' => 'Unlimited bulk edits per month',
                 'test' => false,
                 'on_install' => false,
-                'trial_days' => 7,
+                'trial_days' => 0,
             ]);
         }
     }
