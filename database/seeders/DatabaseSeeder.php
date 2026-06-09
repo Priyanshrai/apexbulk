@@ -29,10 +29,5 @@ class DatabaseSeeder extends Seeder
                 'trial_days' => 7,
             ]);
         }
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
     }
 }
