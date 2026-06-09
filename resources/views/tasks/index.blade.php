@@ -9,7 +9,9 @@
 
     @include('components.nav-menu')
 
-    <s-page heading="Task History" style="display:flex;flex-direction:column;gap:24px;">
+    <s-page heading="Task History">
+
+        <s-stack gap="large-200">
 
         @include('components.usage-banner')
 
@@ -29,14 +31,14 @@
                 @foreach($tasks as $task)
                 <s-table-row>
                     <s-table-cell>
-                        <span style="font-weight:600;">#{{ $task->id }}</span>
-                        <span style="font-size:12px;color:var(--p-color-text-subdued);">
+                        <s-text as="span" fontWeight="bold">#{{ $task->id }}</s-text>
+                        <s-text as="span" variant="bodySm" tone="subdued">
                         @if($task->task_type === 'price') 💰 Price
                         @elseif($task->task_type === 'inventory') 📦 Inventory
                         @elseif($task->task_type === 'tags') 🏷️ Tags
                         @else {{ ucfirst($task->task_type) }}
                         @endif
-                        </span>
+                        </s-text>
                     </s-table-cell>
 
                     <s-table-cell>
@@ -48,7 +50,7 @@
 
                     <s-table-cell>
                         @if($task->isAllProducts())
-                            <span style="color:var(--p-color-text-subdued);">All products</span>
+                            <s-text tone="subdued">All products</s-text>
                         @else
                             @php $links = $task->productLinks(); @endphp
                             @if(count($links) <= 3)
@@ -68,9 +70,9 @@
                                         </a>
                                     @endforeach
                                     @if($task->productCount() > 5)
-                                        <span style="font-size:12px;color:var(--p-color-text-subdued);padding-left:8px;">
+                                        <s-text tone="subdued" variant="bodySm" style="padding-left:8px;">
                                             +{{ $task->productCount() - 5 }} more
-                                        </span>
+                                        </s-text>
                                     @endif
                                 </details>
                             @endif
@@ -109,29 +111,33 @@
             </s-table>
 
             @if($tasks->hasPages())
-            <div style="display:flex;align-items:center;justify-content:center;gap:12px;padding-top:24px;">
+            <s-stack direction="inline" gap="base" justifyContent="center">
                 @if($tasks->onFirstPage())
                     <s-button disabled>← Previous</s-button>
                 @else
                     <s-button onclick="location.href='{{ $tasks->previousPageUrl() }}&host={{ request('host') }}&shop={{ request('shop') }}'">← Previous</s-button>
                 @endif
-                <span style="color:var(--p-color-text-secondary);font-size:14px;">Page {{ $tasks->currentPage() }} of {{ $tasks->lastPage() }}</span>
+                <s-text tone="subdued">Page {{ $tasks->currentPage() }} of {{ $tasks->lastPage() }}</s-text>
                 @if($tasks->hasMorePages())
                     <s-button onclick="location.href='{{ $tasks->nextPageUrl() }}&host={{ request('host') }}&shop={{ request('shop') }}'">Next →</s-button>
                 @else
                     <s-button disabled>Next →</s-button>
                 @endif
-            </div>
+            </s-stack>
             @endif
         @endif
+
+        </s-stack>
 
     </s-page>
 
     <ui-modal id="revert-modal">
-        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
-            <s-text tone="subdued">This will restore the original values for this task. Revert logs will be used to restore data.</s-text>
-            <s-banner tone="warning">This action cannot be undone. The original values will be set back via Shopify API.</s-banner>
-        </div>
+        <s-box padding="large-200">
+            <s-stack gap="large-200">
+                <s-text tone="subdued">This will restore the original values for this task. Revert logs will be used to restore data.</s-text>
+                <s-banner tone="warning">This action cannot be undone. The original values will be set back via Shopify API.</s-banner>
+            </s-stack>
+        </s-box>
         <ui-title-bar title="Confirm Revert">
             <button onclick="shopify.modal.hide('revert-modal')">Cancel</button>
             <button variant="primary" onclick="shopify.modal.hide('revert-modal').then(()=>document.getElementById('revert-form-'+document.getElementById('revert-task').value).submit())">Confirm Revert</button>

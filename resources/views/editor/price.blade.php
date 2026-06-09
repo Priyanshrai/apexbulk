@@ -35,74 +35,90 @@
             @sessionToken
             <input type="hidden" name="product_ids" id="product-ids">
 
+            {{-- 1. Select Products --}}
             <s-section heading="1. Select Products">
-                <s-paragraph tone="subdued">Choose which products to update prices for.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Choose which products to update prices for.</s-paragraph>
 
-                <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
-                    @if($isFree)
-                    <s-option value="all" disabled>All Products 🔒 Pro</s-option>
-                    @else
-                    <s-option value="all">All Products</s-option>
-                    @endif
-                    <s-option value="manual">Manual Selection</s-option>
-                </s-select>
+                    <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
+                        @if($isFree)
+                        <s-option value="all" disabled>All Products 🔒 Pro</s-option>
+                        @else
+                        <s-option value="all">All Products</s-option>
+                        @endif
+                        <s-option value="manual">Manual Selection</s-option>
+                    </s-select>
 
-                <div id="browse-section" style="display:none;">
-                    <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
-                    <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
-                </div>
+                    <div id="browse-section" style="display:none;">
+                        <s-box padding="base">
+                            <s-stack gap="base">
+                                <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
+                                <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+                            </s-stack>
+                        </s-box>
+                    </div>
+                </s-stack>
             </s-section>
 
+            {{-- 2. Price Action --}}
             <s-section heading="2. Price Action">
-                <s-paragraph tone="subdued">Define how prices should be modified.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Define how prices should be modified.</s-paragraph>
 
-                <s-select label="Action *" name="action" required>
-                    <s-option value="set_specific">Set to a specific price</s-option>
-                    <s-option value="increase_amount">Increase by amount</s-option>
-                    <s-option value="decrease_amount">Decrease by amount</s-option>
-                    <s-option value="increase_percent">Increase by percentage (%)</s-option>
-                    <s-option value="decrease_percent">Decrease by percentage (%)</s-option>
-                </s-select>
+                    <s-select label="Action *" name="action" required>
+                        <s-option value="set_specific">Set to a specific price</s-option>
+                        <s-option value="increase_amount">Increase by amount</s-option>
+                        <s-option value="decrease_amount">Decrease by amount</s-option>
+                        <s-option value="increase_percent">Increase by percentage (%)</s-option>
+                        <s-option value="decrease_percent">Decrease by percentage (%)</s-option>
+                    </s-select>
 
-                <s-number-field label="Value *" name="value" step="0.01" placeholder="10.00" required></s-number-field>
+                    <s-number-field label="Value *" name="value" step="0.01" placeholder="10.00" required></s-number-field>
+                </s-stack>
             </s-section>
 
+            {{-- 3. Options --}}
             <s-section heading="3. Options">
-                <s-paragraph tone="subdued">Apply rounding and choose scope.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Apply rounding and choose scope.</s-paragraph>
 
-                <s-select label="Rounding" name="rounding" onchange="toggleRounding()">
-                    <s-option value="none">No rounding</s-option>
-                    <s-option value="nearest_01">Nearest cent</s-option>
-                    <s-option value="nearest_whole">Nearest whole number</s-option>
-                    <s-option value="end_99">End in .99</s-option>
-                    <s-option value="end_custom">Custom ending value</s-option>
-                </s-select>
+                    <s-select label="Rounding" name="rounding" onchange="toggleRounding()">
+                        <s-option value="none">No rounding</s-option>
+                        <s-option value="nearest_01">Nearest cent</s-option>
+                        <s-option value="nearest_whole">Nearest whole number</s-option>
+                        <s-option value="end_99">End in .99</s-option>
+                        <s-option value="end_custom">Custom ending value</s-option>
+                    </s-select>
 
-                <div id="custom-rounding" style="display:none;">
-                    <s-number-field label="Custom ending value (0.00 - 0.99)" name="rounding_value" min="0" max="0.99" step="0.01" placeholder="0.99"></s-number-field>
-                </div>
+                    <div id="custom-rounding" style="display:none;">
+                        <s-number-field label="Custom ending value (0.00 - 0.99)" name="rounding_value" min="0" max="0.99" step="0.01" placeholder="0.99"></s-number-field>
+                    </div>
 
-                <input type="hidden" name="apply_variants" value="0">
-                <s-checkbox label="Apply to product variants (recommended)" name="apply_variants" value="1" checked></s-checkbox>
+                    <input type="hidden" name="apply_variants" value="0">
+                    <s-checkbox label="Apply to product variants (recommended)" name="apply_variants" value="1" checked></s-checkbox>
+                </s-stack>
             </s-section>
 
+            {{-- 4. Schedule --}}
             <s-section heading="4. Schedule">
-                <s-paragraph tone="subdued">Run now or schedule for a later time (your local time).</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Run now or schedule for a later time (your local time).</s-paragraph>
 
-                <input type="hidden" name="is_scheduled" value="0">
-                <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="var row=document.getElementById('schedule-row');row.style.display=this.checked?'flex':'none';if(this.checked){setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),100)}"></s-checkbox>
+                    <input type="hidden" name="is_scheduled" value="0">
+                    <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="var row=document.getElementById('schedule-row');row.style.display=this.checked?'flex':'none';if(this.checked){setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),100)}"></s-checkbox>
 
-                <div id="schedule-row" style="display:none;gap:12px;align-items:flex-end;margin-top:12px;">
-                    <input type="hidden" name="browser_tz" id="browser-tz">
-                    <div style="flex:1;max-width:200px;">
-                        <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Date</label>
-                        <input type="date" name="schedule_date" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                    <div id="schedule-row" style="display:none;gap:12px;align-items:flex-end;">
+                        <input type="hidden" name="browser_tz" id="browser-tz">
+                        <div style="flex:1;max-width:200px;">
+                            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Date</label>
+                            <input type="date" name="schedule_date" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                        </div>
+                        <div style="width:120px;">
+                            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Time</label>
+                            <input type="time" name="schedule_time" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                        </div>
                     </div>
-                    <div style="width:120px;">
-                        <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Time</label>
-                        <input type="time" name="schedule_time" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
-                    </div>
-                </div>
+                </s-stack>
             </s-section>
         </form>
 

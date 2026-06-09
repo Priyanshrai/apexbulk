@@ -35,76 +35,95 @@
             @sessionToken
             <input type="hidden" name="product_ids" id="product-ids">
 
+            {{-- 1. Select Products --}}
             <s-section heading="1. Select Products">
-                <s-paragraph tone="subdued">Choose which products to update inventory for.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Choose which products to update inventory for.</s-paragraph>
 
-                <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
-                    @if($isFree)
-                    <s-option value="all" disabled>All Products 🔒 Pro</s-option>
-                    @else
-                    <s-option value="all">All Products</s-option>
-                    @endif
-                    <s-option value="manual">Manual Selection</s-option>
-                </s-select>
+                    <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
+                        @if($isFree)
+                        <s-option value="all" disabled>All Products 🔒 Pro</s-option>
+                        @else
+                        <s-option value="all">All Products</s-option>
+                        @endif
+                        <s-option value="manual">Manual Selection</s-option>
+                    </s-select>
 
-                <div id="browse-section" style="display:none;">
-                    <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
-                    <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
-                </div>
+                    <div id="browse-section" style="display:none;">
+                        <s-box padding="base">
+                            <s-stack gap="base">
+                                <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
+                                <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+                            </s-stack>
+                        </s-box>
+                    </div>
+                </s-stack>
             </s-section>
 
+            {{-- 2. Location --}}
             <s-section heading="2. Location">
-                <s-paragraph tone="subdued">Choose which warehouse/location to update inventory for.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Choose which warehouse/location to update inventory for.</s-paragraph>
 
-                <s-select label="Location *" name="location_id">
-                    <s-option value="all">All Locations</s-option>
-                    @foreach($locations as $loc)
-                        <s-option value="{{ $loc['id'] }}">{{ $loc['name'] }}</s-option>
-                    @endforeach
-                </s-select>
-                <s-paragraph tone="subdued" style="margin-top:4px;">💡 Only locations where the product is currently stocked will be updated.</s-paragraph>
+                    <s-select label="Location *" name="location_id">
+                        <s-option value="all">All Locations</s-option>
+                        @foreach($locations as $loc)
+                            <s-option value="{{ $loc['id'] }}">{{ $loc['name'] }}</s-option>
+                        @endforeach
+                    </s-select>
+                    <s-paragraph tone="subdued">💡 Only locations where the product is currently stocked will be updated.</s-paragraph>
+                </s-stack>
             </s-section>
 
+            {{-- 3. Inventory Rule --}}
             <s-section heading="3. Inventory Rule">
-                <s-paragraph tone="subdued">Define how inventory quantities should change.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Define how inventory quantities should change.</s-paragraph>
 
-                <s-select label="Action *" name="action" required>
-                    <s-option value="set_quantity">Set quantity to</s-option>
-                    <s-option value="add_quantity">Add to existing quantity</s-option>
-                    <s-option value="remove_quantity">Remove from existing quantity</s-option>
-                </s-select>
+                    <s-select label="Action *" name="action" required>
+                        <s-option value="set_quantity">Set quantity to</s-option>
+                        <s-option value="add_quantity">Add to existing quantity</s-option>
+                        <s-option value="remove_quantity">Remove from existing quantity</s-option>
+                    </s-select>
 
-                <s-number-field label="Quantity *" name="quantity" placeholder="100" required></s-number-field>
+                    <s-number-field label="Quantity *" name="quantity" placeholder="100" required></s-number-field>
+                </s-stack>
             </s-section>
 
+            {{-- 4. Options --}}
             <s-section heading="4. Options">
-                <s-paragraph tone="subdued">Additional inventory settings.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Additional inventory settings.</s-paragraph>
 
-                <input type="hidden" name="track_inventory" value="0">
-                <s-checkbox label="Track inventory" name="track_inventory" value="1"></s-checkbox>
-                <input type="hidden" name="continue_selling" value="0">
-                <s-checkbox label="Continue selling when out of stock" name="continue_selling" value="1"></s-checkbox>
-                <input type="hidden" name="apply_variants" value="0">
-                <s-checkbox label="Apply to variants" name="apply_variants" value="1" checked></s-checkbox>
+                    <input type="hidden" name="track_inventory" value="0">
+                    <s-checkbox label="Track inventory" name="track_inventory" value="1"></s-checkbox>
+                    <input type="hidden" name="continue_selling" value="0">
+                    <s-checkbox label="Continue selling when out of stock" name="continue_selling" value="1"></s-checkbox>
+                    <input type="hidden" name="apply_variants" value="0">
+                    <s-checkbox label="Apply to variants" name="apply_variants" value="1" checked></s-checkbox>
+                </s-stack>
             </s-section>
 
+            {{-- 5. Schedule --}}
             <s-section heading="5. Schedule">
-                <s-paragraph tone="subdued">Run now or schedule for a later time (your local time).</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Run now or schedule for a later time (your local time).</s-paragraph>
 
-                <input type="hidden" name="is_scheduled" value="0">
-                <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="var row=document.getElementById('schedule-row');row.style.display=this.checked?'flex':'none';if(this.checked){setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),100)}"></s-checkbox>
+                    <input type="hidden" name="is_scheduled" value="0">
+                    <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="var row=document.getElementById('schedule-row');row.style.display=this.checked?'flex':'none';if(this.checked){setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),100)}"></s-checkbox>
 
-                <div id="schedule-row" style="display:none;gap:12px;align-items:flex-end;margin-top:12px;">
-                    <input type="hidden" name="browser_tz" id="browser-tz">
-                    <div style="flex:1;max-width:200px;">
-                        <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Date</label>
-                        <input type="date" name="schedule_date" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                    <div id="schedule-row" style="display:none;gap:12px;align-items:flex-end;">
+                        <input type="hidden" name="browser_tz" id="browser-tz">
+                        <div style="flex:1;max-width:200px;">
+                            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Date</label>
+                            <input type="date" name="schedule_date" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                        </div>
+                        <div style="width:120px;">
+                            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Time</label>
+                            <input type="time" name="schedule_time" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                        </div>
                     </div>
-                    <div style="width:120px;">
-                        <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Time</label>
-                        <input type="time" name="schedule_time" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
-                    </div>
-                </div>
+                </s-stack>
             </s-section>
         </form>
 

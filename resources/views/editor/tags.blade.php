@@ -35,57 +35,70 @@
             @sessionToken
             <input type="hidden" name="product_ids" id="product-ids">
 
+            {{-- 1. Select Products --}}
             <s-section heading="1. Select Products">
-                <s-paragraph tone="subdued">Choose which products to update tags for.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Choose which products to update tags for.</s-paragraph>
 
-                <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
-                    @if($isFree)
-                    <s-option value="all" disabled>All Products 🔒 Pro</s-option>
-                    @else
-                    <s-option value="all">All Products</s-option>
-                    @endif
-                    <s-option value="manual">Manual Selection</s-option>
-                </s-select>
+                    <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
+                        @if($isFree)
+                        <s-option value="all" disabled>All Products 🔒 Pro</s-option>
+                        @else
+                        <s-option value="all">All Products</s-option>
+                        @endif
+                        <s-option value="manual">Manual Selection</s-option>
+                    </s-select>
 
-                <div id="browse-section" style="display:none;">
-                    <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
-                    <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
-                </div>
+                    <div id="browse-section" style="display:none;">
+                        <s-box padding="base">
+                            <s-stack gap="base">
+                                <s-button type="button" onclick="openResourcePicker()">🔍 Browse Products</s-button>
+                                <s-paragraph id="selected-count" tone="subdued">No products selected</s-paragraph>
+                            </s-stack>
+                        </s-box>
+                    </div>
+                </s-stack>
             </s-section>
 
+            {{-- 2. Tag Action --}}
             <s-section heading="2. Tag Action">
-                <s-paragraph tone="subdued">Add, remove, or replace tags in bulk.</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Add, remove, or replace tags in bulk.</s-paragraph>
 
-                <s-select label="Action *" name="action" required onchange="toggleTagField()">
-                    <s-option value="add">Add tags to existing</s-option>
-                    <s-option value="remove">Remove specific tags</s-option>
-                    <s-option value="replace">Replace all tags</s-option>
-                    <s-option value="clear">Clear all tags</s-option>
-                </s-select>
+                    <s-select label="Action *" name="action" required onchange="toggleTagField()">
+                        <s-option value="add">Add tags to existing</s-option>
+                        <s-option value="remove">Remove specific tags</s-option>
+                        <s-option value="replace">Replace all tags</s-option>
+                        <s-option value="clear">Clear all tags</s-option>
+                    </s-select>
 
-                <div id="tags-field">
-                    <s-text-field label="Tags (comma separated)" name="tags_input" placeholder="summer, sale, clearance"></s-text-field>
-                </div>
-                <div id="tags-hidden-inputs"></div>
+                    <div id="tags-field">
+                        <s-text-field label="Tags (comma separated)" name="tags_input" placeholder="summer, sale, clearance"></s-text-field>
+                    </div>
+                    <div id="tags-hidden-inputs"></div>
+                </s-stack>
             </s-section>
 
+            {{-- 3. Schedule --}}
             <s-section heading="3. Schedule">
-                <s-paragraph tone="subdued">Run now or schedule for a later time (your local time).</s-paragraph>
+                <s-stack gap="base">
+                    <s-paragraph tone="subdued">Run now or schedule for a later time (your local time).</s-paragraph>
 
-                <input type="hidden" name="is_scheduled" value="0">
-                <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="var row=document.getElementById('schedule-row');row.style.display=this.checked?'flex':'none';if(this.checked){setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),100)}"></s-checkbox>
+                    <input type="hidden" name="is_scheduled" value="0">
+                    <s-checkbox label="Schedule for later" name="is_scheduled" value="1" onchange="var row=document.getElementById('schedule-row');row.style.display=this.checked?'flex':'none';if(this.checked){setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),100)}"></s-checkbox>
 
-                <div id="schedule-row" style="display:none;gap:12px;align-items:flex-end;margin-top:12px;">
-                    <input type="hidden" name="browser_tz" id="browser-tz">
-                    <div style="flex:1;max-width:200px;">
-                        <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Date</label>
-                        <input type="date" name="schedule_date" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                    <div id="schedule-row" style="display:none;gap:12px;align-items:flex-end;">
+                        <input type="hidden" name="browser_tz" id="browser-tz">
+                        <div style="flex:1;max-width:200px;">
+                            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Date</label>
+                            <input type="date" name="schedule_date" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                        </div>
+                        <div style="width:120px;">
+                            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Time</label>
+                            <input type="time" name="schedule_time" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
+                        </div>
                     </div>
-                    <div style="width:120px;">
-                        <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--p-color-text-subdued);">Time</label>
-                        <input type="time" name="schedule_time" style="width:100%;padding:8px 10px;border:1px solid var(--p-border);border-radius:6px;font-size:13px;background:var(--p-surface);color:var(--p-color-text-primary);box-sizing:border-box;">
-                    </div>
-                </div>
+                </s-stack>
             </s-section>
             <script>document.getElementById('browser-tz').value = Intl.DateTimeFormat().resolvedOptions().timeZone;</script>
         </form>
