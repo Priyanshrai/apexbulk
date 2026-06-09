@@ -419,9 +419,8 @@ return [
         /*
          * GDPR Compliance Webhooks are MANDATORY for App Store but CANNOT be
          * registered via the GraphQL Admin API (not in WebhookSubscriptionTopic enum).
-         * They must be created manually in the Shopify Partner Dashboard:
-         *   Partner Dashboard → Your App → Configuration → GDPR Mandatory Webhooks
-         * Routes in routes/web.php already handle incoming GDPR requests.
+         * They must be created manually in the Shopify Partner Dashboard.
+         * Custom routes in routes/web.php handle incoming GDPR requests at /webhook/gdpr/*.
          */
     ],
 
