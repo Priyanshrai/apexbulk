@@ -1,10 +1,22 @@
-# Apex Bulk - Shopify App Configuration
-# App ID: 375852236801
-# Deploy with: shopify app deploy
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "8de1fefdab46c4c0119055986b830d68"
+name = "Apex Bulk"
+application_url = "https://app.pixiestore.in/"
+embedded = true
 
 [webhooks]
 api_version = "2026-04"
 
-[[webhooks.subscriptions]]
-compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
-uri = "https://app.pixiestore.in/webhooks"
+  [[webhooks.subscriptions]]
+  uri = "/webhooks"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_inventory,read_inventory,read_locations,read_products,write_products"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [ "https://app.pixiestore.in/authenticate" ]
