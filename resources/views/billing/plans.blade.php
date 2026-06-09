@@ -50,7 +50,7 @@
 
                         <s-text as="p" variant="heading2xl" fontWeight="bold">$9.99<s-text as="span" variant="bodySm" tone="subdued" fontWeight="regular">/month</s-text></s-text>
 
-                        <s-paragraph tone="subdued">7-day free trial · Cancel anytime</s-paragraph>
+                        <s-paragraph tone="subdued">Cancel anytime</s-paragraph>
 
                         <s-stack gap="small-200">
                             <s-text as="p">· Unlimited product edits</s-text>
@@ -65,7 +65,7 @@
                             <s-badge tone="success">Current plan</s-badge>
                         @else
                             <s-button variant="primary" full-width onclick="location.href='{{ $upgradeUrl }}'">
-                                Start 7-Day Free Trial →
+                                Subscribe Now →
                             </s-button>
                         @endif
                     </s-stack>
@@ -74,7 +74,7 @@
             </s-stack>
 
             <s-banner tone="info">
-                💡 You&apos;ll be redirected to Shopify to approve the subscription. You won&apos;t be charged until the trial ends.
+                💡 You&apos;ll be redirected to Shopify to approve the subscription.
             </s-banner>
 
         </s-stack>
