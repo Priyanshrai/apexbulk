@@ -43,6 +43,7 @@ class ProcessPriceJob implements ShouldQueue
             $skipped = 0;
             $errors = [];
             $apiCalls = 0;
+            $processedProductIds = [];
 
             foreach ($allEdges as $index => $edge) {
                 $productGid = $edge['node']['id'];
@@ -101,19 +102,30 @@ class ProcessPriceJob implements ShouldQueue
                 } else {
                     TaskRevertLog::insert($revertLogs);
                     $processed += count($variantUpdates);
+                    $processedProductIds[] = $gid;
                 }
             }
 
-            $task->update([
+            $updateData = [
                 'status' => empty($errors) ? BulkEditTask::STATUS_COMPLETED : BulkEditTask::STATUS_FAILED,
                 'failure_reason' => empty($errors) ? null : json_encode(array_slice($errors, 0, 50)),
-            ]);
+            ];
+
+            // If All Products mode and success, store actual processed product IDs
+            if (empty($errors) && $task->product_ids === null) {
+                $updateData['product_ids'] = array_values(array_unique($processedProductIds));
+            }
+
+            $task->update($updateData);
 
         } catch (\Exception $e) {
             $task->update([
                 'status' => BulkEditTask::STATUS_FAILED,
                 'failure_reason' => $e->getMessage(),
             ]);
+        } finally {
+            // Clear usage cache so count updates immediately on next page load
+            app(\App\Services\UsageTracker::class)->clearCache($task->user_id);
         }
     }
 }

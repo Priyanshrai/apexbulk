@@ -42,6 +42,7 @@ class ProcessInventoryJob implements ShouldQueue
             $processed = 0;
             $skipped = 0;
             $errors = [];
+            $processedProductIds = [];
 
             foreach ($allEdges as $index => $edge) {
                 $productGid = $edge['node']['id'];
@@ -125,6 +126,7 @@ class ProcessInventoryJob implements ShouldQueue
                         ];
 
                         $processed++;
+                        $processedProductIds[] = $gid;
                     }
                 }
 
@@ -159,16 +161,26 @@ class ProcessInventoryJob implements ShouldQueue
                 $errors[] = 'No inventory found at the selected location for these products. The products may not be stocked at this location.';
             }
 
-            $task->update([
+            $updateData = [
                 'status' => empty($errors) ? BulkEditTask::STATUS_COMPLETED : BulkEditTask::STATUS_FAILED,
                 'failure_reason' => empty($errors) ? null : json_encode(array_slice($errors, 0, 50)),
-            ]);
+            ];
+
+            // If All Products mode and success, store actual processed product IDs
+            if (empty($errors) && $task->product_ids === null) {
+                $updateData['product_ids'] = array_values(array_unique($processedProductIds));
+            }
+
+            $task->update($updateData);
 
         } catch (\Exception $e) {
             $task->update([
                 'status' => BulkEditTask::STATUS_FAILED,
                 'failure_reason' => $e->getMessage(),
             ]);
+        } finally {
+            // Clear usage cache so count updates immediately on next page load
+            app(\App\Services\UsageTracker::class)->clearCache($task->user_id);
         }
     }
 

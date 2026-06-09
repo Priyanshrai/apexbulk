@@ -9,24 +9,26 @@
 
     @include('components.nav-menu')
 
-    @include('components.usage-banner')
-
-    @if($errors->any())
-    <s-banner tone="critical" style="margin-bottom:16px;">
-        @foreach($errors->all() as $error)
-            <div>{{ $error }}</div>
-        @endforeach
-    </s-banner>
-    @endif
-
-    @include('components.confirm-modal', [
-        'modalId' => 'confirm-price-modal',
-        'formId' => 'price-form',
-        'title' => 'Confirm Bulk Price Update',
-        'message' => 'This action will modify prices on your live products. Make sure you\'ve reviewed your settings before proceeding.',
-    ])
-
     <s-page heading="Bulk Price Editor">
+
+        @include('components.usage-banner')
+
+        @if($errors->any())
+        <s-banner tone="critical" style="margin-bottom:16px;">
+            @foreach($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </s-banner>
+        @endif
+
+        @include('components.confirm-modal', [
+            'modalId' => 'confirm-price-modal',
+            'formId' => 'price-form',
+            'title' => 'Confirm Bulk Price Update',
+            'message' => 'This action will modify prices on your live products. Make sure you\'ve reviewed your settings before proceeding.',
+        ])
+
+        @php $isFree = Auth::user()->isFree(); @endphp
 
         <form id="price-form" method="POST" action="{{ route('editor.price.submit') }}" style="display:flex;flex-direction:column;gap:24px;">
             @csrf
@@ -37,7 +39,11 @@
                 <s-paragraph tone="subdued">Choose which products to update prices for.</s-paragraph>
 
                 <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
+                    @if($isFree)
+                    <s-option value="all" disabled>All Products 🔒 Pro</s-option>
+                    @else
                     <s-option value="all">All Products</s-option>
+                    @endif
                     <s-option value="manual">Manual Selection</s-option>
                 </s-select>
 
@@ -315,6 +321,7 @@
         const mode = document.querySelector('[name="selection_mode"]').value;
         document.getElementById('browse-section').style.display = mode === 'manual' ? 'block' : 'none';
     }
+    document.addEventListener('DOMContentLoaded', toggleBrowse);
 
     // Show/hide custom rounding field
     function toggleRounding() {

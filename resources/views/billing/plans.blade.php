@@ -1,44 +1,83 @@
 @extends('shopify-app::layouts.default')
 
 @section('content')
-    <ui-title-bar title="ApexBulk > Plans"></ui-title-bar>
+
+    @php
+        $host = request('host');
+        $homeUrl = URL::tokenRoute('home', compact('host'));
+        $upgradeUrl = '/billing/1?host=' . $host . '&shop=' . request('shop');
+        $isFree = Auth::user()->isFree();
+    @endphp
+
+    <ui-title-bar title="ApexBulk > Plans">
+        <button onclick="location.href='{{ $homeUrl }}'">← Dashboard</button>
+    </ui-title-bar>
 
     @include('components.nav-menu')
 
-    <s-page heading="Choose Your Plan" style="display:flex;flex-direction:column;gap:24px;">
+    <s-page heading="Choose Your Plan">
 
-        <s-grid>
-            <s-section heading="🆓 Free">
-                <s-paragraph tone="subdued">For small shops getting started.</s-paragraph>
-                <s-list>
-                    <s-list-item>✅ 100 unique product edits per month</s-list-item>
-                    <s-list-item>✅ Price, Inventory & Tags editors</s-list-item>
-                    <s-list-item>✅ Schedule tasks</s-list-item>
-                    <s-list-item>✅ Task history & revert</s-list-item>
-                </s-list>
-                <s-badge tone="success">Current plan</s-badge>
-            </s-section>
+        <s-stack gap="large-200">
 
-            <s-section heading="🚀 Pro">
-                <s-paragraph tone="subdued">For growing businesses.</s-paragraph>
-                <s-list>
-                    <s-list-item>✅ Unlimited product edits</s-list-item>
-                    <s-list-item>✅ Price, Inventory & Tags editors</s-list-item>
-                    <s-list-item>✅ Schedule tasks</s-list-item>
-                    <s-list-item>✅ Task history & revert</s-list-item>
-                    <s-list-item>✅ Priority support</s-list-item>
-                </s-list>
-                <s-text style="font-size:24px;font-weight:700;margin:8px 0;">$9.99<span style="font-size:14px;font-weight:400;">/month</span></s-text>
-                <s-paragraph tone="subdued">7-day free trial included</s-paragraph>
-                <s-button variant="primary" full-width onclick="location.href='/billing/1?host={{ request('host') }}&shop={{ request('shop') }}'">
-                    Start 7-Day Free Trial →
-                </s-button>
-            </s-section>
-        </s-grid>
+            @include('components.usage-banner')
 
-        <s-banner tone="info">
-            💡 You'll be redirected to Shopify to approve the subscription. You won't be charged until the trial ends.
-        </s-banner>
+            <s-stack direction="inline" gap="large-200">
+
+                {{-- Free Plan --}}
+                <s-section heading="🆓 Free">
+                    <s-stack gap="base">
+                        <s-paragraph tone="subdued">For small shops getting started.</s-paragraph>
+
+                        <s-text as="p" variant="heading2xl" fontWeight="bold">$0<s-text as="span" variant="bodySm" tone="subdued" fontWeight="regular">/month</s-text></s-text>
+
+                        <s-stack gap="small-200">
+                            <s-text as="p">· 100 unique product edits per month</s-text>
+                            <s-text as="p">· Price, Inventory & Tags editors</s-text>
+                            <s-text as="p">· Schedule tasks</s-text>
+                            <s-text as="p">· Task history & revert</s-text>
+                        </s-stack>
+
+                        @if($isFree)
+                            <s-badge tone="success">Current plan</s-badge>
+                        @endif
+                    </s-stack>
+                </s-section>
+
+                {{-- Pro Plan --}}
+                <s-section heading="🚀 Pro">
+                    <s-stack gap="base">
+                        <s-paragraph tone="subdued">For growing businesses that need unlimited power.</s-paragraph>
+
+                        <s-text as="p" variant="heading2xl" fontWeight="bold">$9.99<s-text as="span" variant="bodySm" tone="subdued" fontWeight="regular">/month</s-text></s-text>
+
+                        <s-paragraph tone="subdued">7-day free trial · Cancel anytime</s-paragraph>
+
+                        <s-stack gap="small-200">
+                            <s-text as="p">· Unlimited product edits</s-text>
+                            <s-text as="p">· All Products mode</s-text>
+                            <s-text as="p">· Price, Inventory & Tags editors</s-text>
+                            <s-text as="p">· Schedule tasks</s-text>
+                            <s-text as="p">· Task history & revert</s-text>
+                            <s-text as="p">· Priority support</s-text>
+                        </s-stack>
+
+                        @if(!$isFree)
+                            <s-badge tone="success">Current plan</s-badge>
+                        @else
+                            <s-button variant="primary" full-width onclick="location.href='{{ $upgradeUrl }}'">
+                                Start 7-Day Free Trial →
+                            </s-button>
+                        @endif
+                    </s-stack>
+                </s-section>
+
+            </s-stack>
+
+            <s-banner tone="info">
+                💡 You&apos;ll be redirected to Shopify to approve the subscription. You won&apos;t be charged until the trial ends.
+            </s-banner>
+
+        </s-stack>
 
     </s-page>
 @endsection

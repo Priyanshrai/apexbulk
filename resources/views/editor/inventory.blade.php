@@ -9,24 +9,26 @@
 
     @include('components.nav-menu')
 
-    @include('components.usage-banner')
-
-    @if($errors->any())
-    <s-banner tone="critical" style="margin-bottom:16px;">
-        @foreach($errors->all() as $error)
-            <div>{{ $error }}</div>
-        @endforeach
-    </s-banner>
-    @endif
-
-    @include('components.confirm-modal', [
-        'modalId' => 'confirm-inv-modal',
-        'formId' => 'inv-form',
-        'title' => 'Confirm Bulk Inventory Update',
-        'message' => 'This action will modify inventory levels on your live products. Make sure you\'ve reviewed your settings before proceeding.',
-    ])
-
     <s-page heading="Bulk Inventory Editor">
+
+        @include('components.usage-banner')
+
+        @if($errors->any())
+        <s-banner tone="critical" style="margin-bottom:16px;">
+            @foreach($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </s-banner>
+        @endif
+
+        @include('components.confirm-modal', [
+            'modalId' => 'confirm-inv-modal',
+            'formId' => 'inv-form',
+            'title' => 'Confirm Bulk Inventory Update',
+            'message' => 'This action will modify inventory levels on your live products. Make sure you\'ve reviewed your settings before proceeding.',
+        ])
+
+        @php $isFree = Auth::user()->isFree(); @endphp
 
         <form id="inv-form" method="POST" action="{{ route('editor.inventory.submit') }}" style="display:flex;flex-direction:column;gap:24px;">
             @csrf
@@ -37,7 +39,11 @@
                 <s-paragraph tone="subdued">Choose which products to update inventory for.</s-paragraph>
 
                 <s-select label="Selection Mode" name="selection_mode" required onchange="toggleBrowse()">
+                    @if($isFree)
+                    <s-option value="all" disabled>All Products 🔒 Pro</s-option>
+                    @else
                     <s-option value="all">All Products</s-option>
+                    @endif
                     <s-option value="manual">Manual Selection</s-option>
                 </s-select>
 
@@ -289,6 +295,7 @@
         const mode = document.querySelector('[name="selection_mode"]').value;
         document.getElementById('browse-section').style.display = mode === 'manual' ? 'block' : 'none';
     }
+    document.addEventListener('DOMContentLoaded', toggleBrowse);
 
     function openResourcePicker() {
         shopify.resourcePicker({ type: 'product', multiple: true }).then(result => {

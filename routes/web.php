@@ -45,3 +45,37 @@ Route::middleware(['verify.shopify'])->group(function () {
         return view('billing.plans');
     })->name('billing.plans');
 });
+
+/*
+|--------------------------------------------------------------------------
+| GDPR Compliance Webhooks (Mandatory for App Store)
+|--------------------------------------------------------------------------
+| Uses the package's auth.webhook middleware for HMAC verification.
+| Kyon147 package /webhook/{type} route cannot handle slashes in topic
+| names (shop/redact, customers/redact, etc.), so we define explicit routes.
+*/
+Route::prefix('webhook/gdpr')->middleware(['auth.webhook'])->group(function () {
+    Route::post('/shop-redact', function (Request $request) {
+        \App\Jobs\GdprShopRedactJob::dispatch(
+            $request->header('x-shopify-shop-domain'),
+            json_decode($request->getContent())
+        );
+        return response('', 201);
+    });
+
+    Route::post('/customers-redact', function (Request $request) {
+        \App\Jobs\GdprCustomerRedactJob::dispatch(
+            $request->header('x-shopify-shop-domain'),
+            json_decode($request->getContent())
+        );
+        return response('', 201);
+    });
+
+    Route::post('/customers-data-request', function (Request $request) {
+        \App\Jobs\GdprCustomerDataRequestJob::dispatch(
+            $request->header('x-shopify-shop-domain'),
+            json_decode($request->getContent())
+        );
+        return response('', 201);
+    });
+});

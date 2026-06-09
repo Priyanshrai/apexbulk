@@ -9,9 +9,9 @@
 
     @include('components.nav-menu')
 
-    @include('components.usage-banner')
-
     <s-page heading="Task History" style="display:flex;flex-direction:column;gap:24px;">
+
+        @include('components.usage-banner')
 
         @if($tasks->isEmpty())
             <s-banner tone="info">No tasks yet. Go to the dashboard and start editing!</s-banner>

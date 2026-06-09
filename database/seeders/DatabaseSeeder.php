@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 9.99,
                 'capped_amount' => 0,
                 'terms' => 'Unlimited bulk edits per month',
-                'test' => true,
+                'test' => false,
                 'on_install' => false,
                 'trial_days' => 7,
             ]);

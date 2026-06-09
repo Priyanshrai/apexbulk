@@ -416,6 +416,22 @@ return [
             'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'APP_UNINSTALLED'),
             'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://example.com/webhook/app-uninstalled')
         ],
+        // GDPR Compliance Webhooks (Mandatory for App Store)
+        'shop/redact' => [
+            'topic' => 'shop/redact',
+            'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://example.com/webhook/gdpr/shop-redact'),
+            'class' => \App\Jobs\GdprShopRedactJob::class,
+        ],
+        'customers/redact' => [
+            'topic' => 'customers/redact',
+            'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://example.com/webhook/gdpr/customers-redact'),
+            'class' => \App\Jobs\GdprCustomerRedactJob::class,
+        ],
+        'customers/data_request' => [
+            'topic' => 'customers/data_request',
+            'address' => env('SHOPIFY_WEBHOOK_4_ADDRESS', 'https://example.com/webhook/gdpr/customers-data-request'),
+            'class' => \App\Jobs\GdprCustomerDataRequestJob::class,
+        ],
     ],
 
     /*

@@ -16,19 +16,26 @@ class EditorController extends Controller
     public function __construct(private UsageTracker $usage) {}
 
     /**
-     * Check if free shop is over limit — return error message or null.
+     * Validate free-plan restrictions: no All Products mode, check monthly limit.
+     * Returns error message or null if OK.
      */
-    private function checkUsageLimit(): ?string
+    private function validateFreeUser(Request $request): ?string
     {
         $shop = Auth::user();
 
-        // Pro plan or freemium — no limit
-        if ($shop->plan || $shop->isFreemium() || $shop->isGrandfathered()) {
+        // Pro, freemium, or grandfathered — no restrictions
+        if (!$shop->isFree()) {
             return null;
         }
 
+        // Free users cannot use All Products mode
+        if ($request->input('selection_mode') === 'all') {
+            return 'The "All Products" mode is only available on the Pro plan. Please upgrade to unlock this feature.';
+        }
+
+        // Check monthly limit
         if ($this->usage->isOverLimit($shop->getId()->toNative())) {
-            return "You've reached the free limit of " . UsageTracker::FREE_LIMIT . " products this month. Upgrade to Pro for unlimited edits.";
+            return 'You\'ve reached the free limit of ' . UsageTracker::FREE_LIMIT . ' products this month. Upgrade to Pro for unlimited edits.';
         }
 
         return null;
@@ -58,7 +65,7 @@ class EditorController extends Controller
      */
     public function submitPrice(Request $request)
     {
-        if ($limitMsg = $this->checkUsageLimit()) {
+        if ($limitMsg = $this->validateFreeUser($request)) {
             return back()->with('error', $limitMsg);
         }
 
@@ -136,7 +143,7 @@ class EditorController extends Controller
 
     public function submitInventory(Request $request)
     {
-        if ($limitMsg = $this->checkUsageLimit()) {
+        if ($limitMsg = $this->validateFreeUser($request)) {
             return back()->with('error', $limitMsg);
         }
 
@@ -206,7 +213,7 @@ class EditorController extends Controller
 
     public function submitTags(Request $request)
     {
-        if ($limitMsg = $this->checkUsageLimit()) {
+        if ($limitMsg = $this->validateFreeUser($request)) {
             return back()->with('error', $limitMsg);
         }
 

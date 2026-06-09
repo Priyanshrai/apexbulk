@@ -25,6 +25,14 @@ class User extends Authenticatable implements IShopModel
     }
 
     /**
+     * Check if this shop is on the free plan (no paid plan, not freemium, not grandfathered).
+     */
+    public function isFree(): bool
+    {
+        return !$this->plan && !$this->isFreemium() && !$this->isGrandfathered();
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
