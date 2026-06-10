@@ -46,9 +46,9 @@ Route::middleware(['verify.shopify'])->group(function () {
 
 // Billing plans page
 Route::middleware(['verify.shopify'])->group(function () {
-    Route::get('/billing/plans', function () {
+    Route::get('/plans', function () {
         return view('billing.plans');
-    })->name('billing.plans');
+    })->name('plans');
 });
 
 /*

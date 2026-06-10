@@ -6,7 +6,7 @@
     $used = $tracker->countThisMonth($uid);
     $limit = \App\Services\UsageTracker::FREE_LIMIT;
     $remaining = $tracker->remaining($uid);
-    $upgradeUrl = URL::tokenRoute('billing.plans', ['host' => request('host')]);
+    $upgradeUrl = URL::tokenRoute('plans', ['host' => request('host')]);
 @endphp
 
 <s-banner tone="{{ $remaining <= 10 ? 'warning' : 'info' }}" style="margin-bottom:16px;max-width:100%;">
