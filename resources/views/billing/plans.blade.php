@@ -72,11 +72,13 @@
 
                         @if(!$isFree)
                             <s-badge tone="success">Current plan</s-badge>
-                            <s-stack gap="small-200">
-                                <form method="POST" action="{{ URL::tokenRoute('plans.cancel', ['host' => $host]) }}">
-                                    <s-button variant="danger" full-width submit>Cancel Subscription</s-button>
-                                </form>
-                            </s-stack>
+                            <form id="cancel-form" method="POST" action="{{ URL::tokenRoute('plans.cancel', ['host' => $host]) }}" style="display:none;">
+                                @csrf
+                                @sessionToken
+                            </form>
+                            <s-button variant="danger" full-width onclick="document.getElementById('cancel-form').submit();">
+                                Cancel Subscription
+                            </s-button>
                         @else
                             <s-button variant="primary" full-width onclick="location.href='{{ $upgradeUrl }}'">
                                 Subscribe Now →
