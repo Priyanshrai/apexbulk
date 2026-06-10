@@ -49,6 +49,28 @@ Route::middleware(['verify.shopify'])->group(function () {
     Route::get('/plans', function () {
         return view('billing.plans');
     })->name('plans');
+
+    // Cancel Pro subscription — downgrade to Free
+    Route::post('/plans/cancel', function (Request $request) {
+        $shop = Auth::user();
+
+        try {
+            // Cancel the recurring charge on Shopify
+            $cancelPlan = app(\Osiset\ShopifyApp\Actions\CancelCurrentPlan::class);
+            $cancelPlan($shop->getId());
+
+            // Remove plan from shop in DB
+            $shop->update(['plan_id' => null]);
+
+            return back()->with('success', 'Your Pro subscription has been cancelled. You are now on the Free plan.');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Plan cancel failed', [
+                'shop' => $shop->getDomain()->toNative(),
+                'error' => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Could not cancel subscription. Please try again or contact support.');
+        }
+    })->name('plans.cancel');
 });
 
 /*

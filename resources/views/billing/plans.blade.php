@@ -4,8 +4,9 @@
 
     @php
         $host = request('host');
+        $shopDomain = Auth::user()->getDomain()->toNative();
         $homeUrl = URL::tokenRoute('home', compact('host'));
-        $upgradeUrl = '/billing/1?host=' . $host . '&shop=' . request('shop');
+        $upgradeUrl = '/billing/1?host=' . $host . '&shop=' . $shopDomain;
         $isFree = Auth::user()->isFree();
     @endphp
 
@@ -20,6 +21,14 @@
         <s-stack gap="large-200">
 
             @include('components.usage-banner')
+
+            {{-- Flash Messages --}}
+            @if(session('success'))
+                <s-banner tone="success">{{ session('success') }}</s-banner>
+            @endif
+            @if(session('error'))
+                <s-banner tone="critical">{{ session('error') }}</s-banner>
+            @endif
 
             <s-stack direction="inline" gap="large-200">
 
@@ -63,6 +72,11 @@
 
                         @if(!$isFree)
                             <s-badge tone="success">Current plan</s-badge>
+                            <s-stack gap="small-200">
+                                <form method="POST" action="{{ URL::tokenRoute('plans.cancel', ['host' => $host]) }}">
+                                    <s-button variant="danger" full-width submit>Cancel Subscription</s-button>
+                                </form>
+                            </s-stack>
                         @else
                             <s-button variant="primary" full-width onclick="location.href='{{ $upgradeUrl }}'">
                                 Subscribe Now →
