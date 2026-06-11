@@ -60,7 +60,8 @@ Route::middleware(['verify.shopify'])->group(function () {
             $cancelPlan($shop->getId());
 
             // Remove plan from shop in DB
-            $shop->update(['plan_id' => null]);
+            $shop->plan_id = null;
+            $shop->save();
 
             return redirect()->route('plans', ['host' => $request->get('host')])->with('success', 'Your Pro subscription has been cancelled. You are now on the Free plan.');
         } catch (\Throwable $e) {
